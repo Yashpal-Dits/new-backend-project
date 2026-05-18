@@ -6,36 +6,40 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm";
+import { OTPPurpose } from "../enums";
 import { User } from "./UserEntity";
 
-@Entity('otps') 
+@Entity("otps")
 export class OTP {
-    @PrimaryGeneratedColumn("increment")
-    id: number;
+  @PrimaryGeneratedColumn("increment")
+  id: number;
 
-    @Column ({type : "varchar", length : 10})
-    otp: string;
+  @Column({ type: "varchar", length: 10 })
+  otp: string;
 
-    @Column ({type : "timestamp"})
-    expires_at : Date;
+  @Column({ type: "timestamp" })
+  expires_at: Date;
 
-    @Column({type : "boolean", default: false})
-    is_used: boolean;
+  @Column({ type: "boolean", default: false })
+  is_used: boolean;
 
-    @Column({ type: "varchar", length: 100})
-    purpose: string;
+  @Column({
+    type: "enum",
+    enum: OTPPurpose,
+    default: OTPPurpose.REGISTRATION,
+  })
+  purpose: OTPPurpose;
 
-    @Column ({type : "varchar"})
-    email: string;
+  @Column({ type: "varchar" })
+  email: string;
 
-    @CreateDateColumn({type: "timestamp"})
-    created_at : Date;
+  @CreateDateColumn({ type: "timestamp" })
+  created_at: Date;
 
-    @Column ({type: "int", nullable:true})
-    user_id: number;
+  @Column({ type: "int", nullable: true })
+  user_id: number;
 
-    @ManyToOne(() => User, {nullable: true }) 
-    @JoinColumn({name : "user_id"})
-    user : User;
-
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: "user_id" })
+  user: User;
 }

@@ -1,118 +1,146 @@
 import { sendOTPEmail } from "./EmailService";
-import{
-    saveOTP,
-    findByEmailAndOTP,
-    markAsUsed,
-    deleteOldOTPs
-} from "../repositories/OTPRepositry";
+import {
+  saveOTP,
+  findByEmailAndOTP,
+  markAsUsed,
+  deleteOldOTPs,
+} from "../repositories/OTPRepository";
+import { MESSAGES } from "../constants/messages";
+import { OTPPurpose } from "../enums";
+import type { IOTPServiceResponse } from "../interfaces";
 
 const OTP_EXPIRY_MINUTES = parseInt(process.env.OTP_EXPIRY_MINUTES || "10");
-const OTP_LENGTH = parseInt(process.env.OPT_LENGTH || "6");
+const OTP_LENGTH = parseInt(process.env.OTP_LENGTH || "6");
 
-const generateOTP = () : string => {
-    const min = Math.pow(10, OTP_LENGTH -1);
-    const max = Math.pow(10, OTP_LENGTH -1);
-    return Math.floor(min+ Math.random() * (max -min + 1)).toString();
+const generateOTP = (): string => {
+  const digits = "0123456789";
+  let otp = "";
+
+  for (let i = 0; i < OTP_LENGTH; i++) {
+    const randomIndex = Math.floor(Math.random() * digits.length);
+    otp += digits[randomIndex];
+  }
+
+  return otp;
 };
 
-export  const sendOTP = async (
-    email : string
-): Promise<{ success : boolean; message: string}> => {
-    try {
-        await deleteOldOTPs(email);
+export const sendOTP = async (
+  email: string,
+  purpose: OTPPurpose = OTPPurpose.REGISTRATION
+): Promise<IOTPServiceResponse> => {
+  try {
+    await deleteOldOTPs(email, purpose);
 
-        const otp = generateOTP();
-        const expires_at = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
-        await saveOTP(email, otp, expires_at);
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    await saveOTP(email, otp, expiresAt, purpose);
 
     const emailSent = await sendOTPEmail(email, otp);
 
-    if(!emailSent) {
-        return {
-            success: false,
-            message:"Failed to send OTP email",
-        };
-    }
-
-    return {
-        success: true,
-        message:   `OTP sent to ${email}. Valid for ${OTP_EXPIRY_MINUTES}.`,
-    };
-    } catch (error) {
-      console.error("Error in send OTP:", error);
-      
+    if (!emailSent) {
       return {
         success: false,
-        message: "Error sending OTP",
+        message: MESSAGES.AUTH.OTP_SEND_FAILED,
+        timestamp: new Date().toISOString(),
       };
     }
+
+    console.log(`\n🔐 OTP for ${email}: ${otp}`);
+    console.log(`⏰ Expires at: ${expiresAt.toLocaleTimeString()}\n`);
+
+    return {
+      success: true,
+      message: MESSAGES.AUTH.OTP_SENT(email),
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error("Error in sendOTP:", error);
+    return {
+      success: false,
+      message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString(),
+    };
+  }
 };
 
 export const verifyOTP = async (
-    email: string,
-    otp: string
-): Promise<{success: boolean; message : string} >  => {
-    try {
-        const otpRecord = await findByEmailAndOTP(email, otp);
+  email: string,
+  otp: string,
+  purpose: OTPPurpose = OTPPurpose.REGISTRATION
+): Promise<IOTPServiceResponse> => {
+  try {
+    const otpRecord = await findByEmailAndOTP(email, otp, purpose);
 
-        if(!otpRecord) {
-            return {
-                success: false,
-                message: "Invalid OTP code",
-            };
-        }
-        if(new Date() > otpRecord.expires_at)  {
-            return {
-                success: false,
-                message: "OTP has expired",
-            };
-        }
-
-        await markAsUsed(otpRecord.id)
-            return {
-                success: true,
-                message : "OTP verified successfully",
-            };
-    } catch (error) {
-        console.error("Error in verify OTP;", error);
-
-        return {
-            success: false,
-            message: "Error verifying OTP"
-        }
+    if (!otpRecord) {
+      return {
+        success: false,
+        message: MESSAGES.AUTH.OTP_INVALID,
+        timestamp: new Date().toISOString(),
+      };
     }
+
+    if (new Date() > otpRecord.expires_at) {
+      return {
+        success: false,
+        message: MESSAGES.AUTH.OTP_EXPIRED,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    await markAsUsed(otpRecord.id);
+
+    return {
+      success: true,
+      message: MESSAGES.AUTH.OTP_VERIFIED,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error("Error in verifyOTP:", error);
+    return {
+      success: false,
+      message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString(),
+    };
+  }
 };
 
 export const resendOTP = async (
-    email: string
-): Promise<{success: boolean; message: string}> => {
-    try {
-        await deleteOldOTPs(email);
+  email: string,
+  purpose: OTPPurpose = OTPPurpose.REGISTRATION
+): Promise<IOTPServiceResponse> => {
+  try {
+    await deleteOldOTPs(email, purpose);
 
-        const otp = generateOTP();
-        const expires_at = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000)
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-        await saveOTP(email, otp, expires_at);
+    await saveOTP(email, otp, expiresAt, purpose);
 
-        const emailSent = await sendOTPEmail(email, otp);
+    const emailSent = await sendOTPEmail(email, otp);
 
-        if(!emailSent) {
-            return {
-                success: false,
-                message : "Failed to send OTP email",
-            };
-        }
-
-        return {
-            success: true,
-            message: `OTP resent to ${email}. Valid for ${OTP_EXPIRY_MINUTES} minutes.`,
-        };
-    } catch (error) {
-        console.error("Error in resend OTP:", error);
-        return {
-            success: false,
-            message : "Error  resending OTP",
-        };
+    if (!emailSent) {
+      return {
+        success: false,
+        message: MESSAGES.AUTH.OTP_SEND_FAILED,
+        timestamp: new Date().toISOString(),
+      };
     }
-};
 
+    console.log(`\n🔐 Resent OTP for ${email}: ${otp}`);
+    console.log(`⏰ Expires at: ${expiresAt.toLocaleTimeString()}\n`);
+
+    return {
+      success: true,
+      message: MESSAGES.AUTH.OTP_RESENT(email),
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error("Error in resendOTP:", error);
+    return {
+      success: false,
+      message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};

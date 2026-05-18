@@ -1,45 +1,46 @@
 import Joi from "joi";
+import { MESSAGES } from "../constants/messages";
 
 export const registerSchema = Joi.object({
   first_name: Joi.string().required().messages({
-    "string.empty": "First name is required",
-    "any.required": "First name is required",
+    "string.empty": MESSAGES.VALIDATION.FIRST_NAME_REQUIRED,
+    "any.required": MESSAGES.VALIDATION.FIRST_NAME_REQUIRED,
   }),
   last_name: Joi.string().required().messages({
-    "string.empty": "Last name is required",
-    "any.required": "Last name is required",
+    "string.empty": MESSAGES.VALIDATION.LAST_NAME_REQUIRED,
+    "any.required": MESSAGES.VALIDATION.LAST_NAME_REQUIRED,
   }),
   email: Joi.string().email().required().messages({
-    "string.email": "Invalid email format",
-    "string.empty": "Email is required",
-    "any.required": "Email is required",
+    "string.email": MESSAGES.VALIDATION.EMAIL_INVALID,
+    "string.empty": MESSAGES.VALIDATION.EMAIL_REQUIRED,
+    "any.required": MESSAGES.VALIDATION.EMAIL_REQUIRED,
   }),
   password: Joi.string()
     .min(8)
-    .pattern(/[A-Z]/) // At least one uppercase
-    .pattern(/[0-9]/) // At least one number
+    .pattern(/[A-Z]/)
+    .pattern(/[0-9]/)
     .required()
     .messages({
-      "string.min": "Password must be at least 8 characters",
-      "string.pattern.base": "Password must contain uppercase letters and numbers",
-      "any.required": "Password is required",
+      "string.min": MESSAGES.VALIDATION.PASSWORD_MIN_LENGTH,
+      "string.pattern.base": MESSAGES.VALIDATION.PASSWORD_UPPERCASE,
+      "any.required": MESSAGES.VALIDATION.PASSWORD_REQUIRED,
     }),
 });
 
 export const verifyOTPSchema = Joi.object({
   email: Joi.string().email().required().messages({
-    "string.email": "Invalid email format",
-    "any.required": "Email is required",
+    "string.email": MESSAGES.VALIDATION.EMAIL_INVALID,
+    "any.required": MESSAGES.VALIDATION.EMAIL_REQUIRED,
   }),
   otp: Joi.string().length(6).required().messages({
-    "string.length": "OTP must be 6 digits",
-    "any.required": "OTP is required",
+    "string.length": MESSAGES.VALIDATION.OTP_LENGTH,
+    "any.required": MESSAGES.VALIDATION.OTP_REQUIRED,
   }),
 });
 
 export const resendOTPSchema = Joi.object({
   email: Joi.string().email().required().messages({
-    "string.email": "Invalid email format",
-    "any.required": "Email is required",
+    "string.email": MESSAGES.VALIDATION.EMAIL_INVALID,
+    "any.required": MESSAGES.VALIDATION.EMAIL_REQUIRED,
   }),
 });

@@ -7,16 +7,11 @@ import {
   OneToMany,
   OneToOne,
 } from "typeorm";
+import { UserRole } from "../enums";
 import { Address } from "./AddressEntity";
 import { Cart } from "./CartEntity";
 import { Order } from "./OrderEntity";
 import { Store } from "./StoreEntity";
-
-export enum UserRole {
-  CUSTOMER = "customer",
-  SELLER = "seller",
-  ADMIN = "admin",
-}
 
 @Entity("users")
 export class User {
@@ -42,8 +37,11 @@ export class User {
   })
   role: UserRole;
 
-  @Column({type : "boolean", default:false})
-  is_email_verified : boolean;
+  @Column({ type: "boolean", default: false })
+  is_email_verified: boolean;
+
+  @Column({ type: "boolean", default: false })
+  is_active: boolean;
 
   @CreateDateColumn({ type: "timestamp" })
   created_at: Date;
@@ -51,7 +49,6 @@ export class User {
   @UpdateDateColumn({ type: "timestamp" })
   updated_at: Date;
 
-  
   @OneToMany(() => Address, (address) => address.user)
   addresses: Address[];
 

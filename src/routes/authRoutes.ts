@@ -4,7 +4,7 @@ import { validateRequest } from "../middlewares/validateRequest";
 import{
     registerSchema,
     verifyOTPSchema,
-    resendOTPSchema
+    resendOTPSchema,
 } from "../validations/authValidation";
 
 
@@ -23,7 +23,7 @@ router.post(
 );
 
 router.post(
-    "resend-otp",
+    "/resend-otp",
     validateRequest(resendOTPSchema),
     authController.resendOTP
 )
