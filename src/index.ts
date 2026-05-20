@@ -1,17 +1,27 @@
 import express from "express";
 import dotenv from "dotenv";
 import { AppDataSource } from "./config/dataSource";
-import authRoutes from "./routes/authRoutes";
+import routes from "./routes/index";
+import swaggerUi from "swagger-ui-express"
+import { swaggerSpec } from "./config/swagger";
 
 dotenv.config();
 
+
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/auth", authRoutes);
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
+
+
+app.use("/api", routes)
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
@@ -39,7 +49,7 @@ const start = async () => {
     await AppDataSource.initialize();
     console.log("Database connected");
     app.listen(PORT, () => {
-      console.log(` Server running on port ${PORT}`);
+      console.log(` Server running on port ${PORT}/api-docs`);
     });
   } catch (error) {
     console.error("Database error:", error);

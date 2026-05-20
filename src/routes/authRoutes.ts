@@ -1,31 +1,131 @@
-import {Router} from "express";
+import { Router } from "express";
 import * as authController from "../controllers/AuthController";
 import { validateRequest } from "../middlewares/validateRequest";
-import{
-    registerSchema,
-    verifyOTPSchema,
-    resendOTPSchema,
-} from "../validations/authValidation";
-
+import {
+  registerSchema,
+  verifyOTPSchema,
+  resendOTPSchema,} from "../validations/authValidation";
 
 const router = Router();
 
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     description: Register a new user and send OTP verification code to email
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RegisterResponse'
+ *       400:
+ *         description: Validation error or email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post(
-    "/register", 
-    validateRequest(registerSchema),
-     authController.register
+  "/register",
+  validateRequest(registerSchema),
+  authController.register
 );
 
+/**
+ * @swagger
+ * /api/auth/verify-otp:
+ *   post:
+ *     summary: Verify OTP and activate email
+ *     description: Verify the 6-digit OTP code sent to user's email
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VerifyOTPRequest'
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/VerifyOTPResponse'
+ *       400:
+ *         description: Invalid or expired OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post(
-    "/verify-otp",
-    validateRequest(verifyOTPSchema),
-    authController.verifyOTP
+  "/verify-otp",
+  validateRequest(verifyOTPSchema),
+  authController.verifyOTP
 );
 
+/**
+ * @swagger
+ * /api/auth/resend-otp:
+ *   post:
+ *     summary: Resend OTP to email
+ *     description: Resend OTP verification code if user didn't receive or OTP expired
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ResendOTPRequest'
+ *     responses:
+ *       200:
+ *         description: OTP resent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: User not found or already verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post(
-    "/resend-otp",
-    validateRequest(resendOTPSchema),
-    authController.resendOTP
-)
+  "/resend-otp",
+  validateRequest(resendOTPSchema),
+  authController.resendOTP
+);
 
 export default router;

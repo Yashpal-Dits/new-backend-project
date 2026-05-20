@@ -32,7 +32,7 @@ export class Refund {
   status: RefundStatus;
 
   @Column({ type: "timestamp", nullable: true })
-  refund_date: Date;
+  refund_date?: Date;
 
   
   @OneToOne(() => Return, (returnItem) => returnItem.refund, { onDelete: "CASCADE" })

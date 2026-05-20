@@ -1,9 +1,7 @@
 import { UserRole, RegistrationStatus } from "../enums";
 
-// API RESPONSE INTERFACES
-
 // Standard API Response for Success
- 
+
 export interface ApiSuccessResponse<T = any> {
   success: true;
   message: string;
@@ -12,7 +10,7 @@ export interface ApiSuccessResponse<T = any> {
 }
 
 // Standard API Response for Error
- 
+
 export interface ApiErrorResponse {
   success: false;
   message: string;
@@ -20,13 +18,12 @@ export interface ApiErrorResponse {
 }
 
 // Combined API Response Type
- 
+
 export type ApiResponse<T = any> = ApiSuccessResponse<T> | ApiErrorResponse;
 
-// AUTH REQUEST INTERFACES 
 
 //   Register User Request
- 
+
 export interface IRegisterRequest {
   first_name: string;
   last_name: string;
@@ -56,14 +53,14 @@ export interface INewRegistrationResponse {
 }
 
 //  Response when existing unverified user registers again
- 
+
 export interface IExistingUserRegistrationData {
   email: string;
   status: RegistrationStatus.PARTIAL_REGISTRATION;
 }
 
 // Union type for all registration responses
- 
+
 export type IRegisterResponseData =
   | INewRegistrationResponse
   | IExistingUserRegistrationData;
@@ -85,20 +82,17 @@ export interface IAuthServiceResponse<T = any> {
   timestamp: string;
 }
 
-//OTP SERVICE RESPONSE 
-
 // OTP Service Response
- 
+
 export interface IOTPServiceResponse {
   success: boolean;
   message: string;
   timestamp: string;
 }
 
-// USER INTERFACES 
 
 // User Entity Interface
- 
+
 export interface IUser {
   id: number;
   first_name: string;
@@ -127,10 +121,9 @@ export interface ICreateUserResponse {
   first_name: string;
   last_name: string;
 }
-//  OTP INTERFACES
 
 // OTP Entity Interface
- 
+
 export interface IOTP {
   id: number;
   email: string;
@@ -142,10 +135,8 @@ export interface IOTP {
   user_id?: number;
 }
 
-//EXPRESS INTERFACES
-
 // Authenticated Request with User
- 
+
 export interface IAuthenticatedRequest extends Express.Request {
   user?: IUser;
   userId?: number;

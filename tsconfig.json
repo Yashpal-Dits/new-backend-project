@@ -35,6 +35,9 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "declaration": true,
+    "declarationMap": true,
+    
 
     /* Completeness */
     "skipLibCheck": true

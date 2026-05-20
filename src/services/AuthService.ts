@@ -171,7 +171,7 @@ export const resendOTP = async (
     }
 
     console.log(` Sending new OTP...`);
-    const result = await otpService.resendOTP(email);
+    const result = await otpService.sendOTP(email);
 
     console.log(`OTP sent result:`, result);
 

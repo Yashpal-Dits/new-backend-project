@@ -14,6 +14,6 @@ export const AppDataSource = new DataSource({
 
   entities: ["src/entities/*.ts"],
 
-  synchronize: true, 
+  synchronize: false, 
   
 });

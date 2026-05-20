@@ -8,6 +8,10 @@ import {
 import { Order } from "./OrderEntity";
 
 export enum PaymentMethod {
+  CARD = "card",
+  UPI = "upi",
+  COD = "cod",
+  PAYPAL = "paypal",
 }
 
 export enum PaymentStatus {
