@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-
+import logger from "../config/logger"
+import { logError } from "../middlewares/logger";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -12,6 +13,14 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
 });
+
+transporter.verify((error, _success) => {
+  if(error) {
+    logger.error("SMTP Connection Error:", error);
+  }else {
+    logger.info("SMTP Server is ready to take your messages");
+  }
+})
 
 export const sendOTPEmail = async (
   email: string,
@@ -41,10 +50,13 @@ export const sendOTPEmail = async (
         </div>
       `,
     });
-    console.log(` OTP email sent to ${email}`);
+    logger.info(` OTP email sent successfully  to: ${email}`);
     return true;
   } catch (error) {
-    console.error(" Error sending email:", error);
+    logError(error as Error, {
+      endpoint:"EmailService.sendOTPEmail",
+      body:{email},
+    });
     return false;
   }
 };

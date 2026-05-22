@@ -8,7 +8,8 @@ import {
 import { MESSAGES } from "../constants/messages";
 import { OTPPurpose } from "../enums";
 import type { IOTPServiceResponse } from "../interfaces";
-
+import logger from "../config/logger";
+import { logError } from "../middlewares/logger";
 const OTP_EXPIRY_MINUTES = parseInt(process.env.OTP_EXPIRY_MINUTES || "10");
 const OTP_LENGTH = parseInt(process.env.OTP_LENGTH || "6");
 
@@ -29,6 +30,8 @@ export const sendOTP = async (
   purpose: OTPPurpose = OTPPurpose.REGISTRATION
 ): Promise<IOTPServiceResponse> => {
   try {
+
+    logger.info(`Initiating OTP generation for: ${email} (Purpose: ${purpose})`);
     await deleteOldOTPs(email, purpose);
 
     const otp = generateOTP();
@@ -39,12 +42,15 @@ export const sendOTP = async (
     const emailSent = await sendOTPEmail(email, otp);
 
     if (!emailSent) {
+      logger.error(`Failed to send the OTP email to :${email}`)
       return {
         success: false,
         message: MESSAGES.AUTH.OTP_SEND_FAILED,
         timestamp: new Date().toISOString(),
       };
     }
+
+    logger.debug(`OTP for ${email}: ${otp} (Expires: ${expiresAt.toLocaleDateString()})`);
 
     console.log(`OTP for ${email}: ${otp}`);
     console.log(`Expires at: ${expiresAt.toLocaleTimeString()}`);
@@ -55,7 +61,10 @@ export const sendOTP = async (
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error("Error in sendOTP:", error);
+    logError(error as Error, {
+      endpoint: "OTPService.sendOTP",
+      body: { email, purpose },
+    });
     return {
       success: false,
       message: MESSAGES.AUTH.INTERNAL_ERROR,
@@ -70,9 +79,11 @@ export const verifyOTP = async (
   purpose: OTPPurpose = OTPPurpose.REGISTRATION
 ): Promise<IOTPServiceResponse> => {
   try {
+    logger.info(`Verifying OTP for: ${email}`);
     const otpRecord = await findByEmailAndOTP(email, otp, purpose);
 
     if (!otpRecord) {
+       logger.warn(`Invalid OTP attempt for: ${email}`);
       return {
         success: false,
         message: MESSAGES.AUTH.OTP_INVALID,
@@ -81,6 +92,7 @@ export const verifyOTP = async (
     }
 
     if (new Date() > otpRecord.expires_at) {
+       logger.warn(`Expired OTP attempt for: ${email}`);
       return {
         success: false,
         message: MESSAGES.AUTH.OTP_EXPIRED,
@@ -89,6 +101,7 @@ export const verifyOTP = async (
     }
 
     await markAsUsed(otpRecord.id);
+    logger.info(`OTP successfully verified for: ${email}`);
 
     return {
       success: true,
@@ -96,7 +109,10 @@ export const verifyOTP = async (
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error("Error in verifyOTP:", error);
+    logError(error as Error, {
+      endpoint: "OTPService.verifyOTP",
+      body: { email, purpose },
+    });
     return {
       success: false,
       message: MESSAGES.AUTH.INTERNAL_ERROR,

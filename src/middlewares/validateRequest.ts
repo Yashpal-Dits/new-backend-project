@@ -13,7 +13,7 @@ export const validateRequest = (schema: Joi.Schema) => {
         field: detail.path.join("."),
         message: detail.message,
       }));
-
+      
       res.status(400).json({
         success: false,
         message: "Validation failed",

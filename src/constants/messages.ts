@@ -13,16 +13,20 @@ export const MESSAGES = {
         OTP_SEND_FAILED: "Failed to send OTP email",
         OTP_VERIFICATION_FAILED: "OTP verification failed",
 
-
+         
         USER_NOT_FOUND: "User not found",
         USER_ALREADY_ACTIVE: "User already verified and active",
         EMAIL_VERIFIED_ALREADY: "Email is already verified",
 
         INVALID_EMAIL: "Invalid email format",
         INVALID_PASSWORD: "Password must be at least 8 charecters and contain uppercase letters and numbers",
+        
         VALIDATION_FAILED: "Validatin failed",
         INTERNAL_ERROR: "Internal server error",
         RESEND_OTP_FAILED: "Failed to resend OTP",
+        INVALID_CREDENTIALS : "The email or password you entered is incorrect.",
+        ACCOUNT_NOT_ACTIVATED: "Your account is not yet verified. Please check your email for the verification code.",
+        LOGIN_SUCCESS: "Successfully logged in.."
     },
 
     VALIDATION: {
@@ -43,6 +47,8 @@ export const MESSAGES = {
         DATA_SAVED: "Data saved successfully",
         DATA_UPDATED: "Data updated successfully",
         DATA_DELETED: "Data deleted successfully",
-    }
+    },
+
+
 
 }

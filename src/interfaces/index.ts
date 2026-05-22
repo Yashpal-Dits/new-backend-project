@@ -141,3 +141,22 @@ export interface IAuthenticatedRequest extends Express.Request {
   user?: IUser;
   userId?: number;
 }
+
+
+export interface ILoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface ILoginUser {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: UserRole;
+}
+export interface ILoginResponseData {
+  token: string;
+  user: ILoginUser;
+
+}

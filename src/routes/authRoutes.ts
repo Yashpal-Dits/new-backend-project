@@ -4,7 +4,9 @@ import { validateRequest } from "../middlewares/validateRequest";
 import {
   registerSchema,
   verifyOTPSchema,
-  resendOTPSchema,} from "../validations/authValidation";
+  resendOTPSchema,
+  loginSchema,
+} from "../validations/authValidation";
 
 const router = Router();
 
@@ -127,5 +129,47 @@ router.post(
   validateRequest(resendOTPSchema),
   authController.resendOTP
 );
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: User Login
+ *     description: Authenticate user with email and password to receive a JWT token
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *       401:
+ *         description: Invalid credentials (Wrong email or password)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Account not activated (Email not verified)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       400:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ */
+router.post("/login", validateRequest(loginSchema), authController.login);
 
 export default router;

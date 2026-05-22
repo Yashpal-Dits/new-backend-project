@@ -44,3 +44,18 @@ export const resendOTPSchema = Joi.object({
     "any.required": MESSAGES.VALIDATION.EMAIL_REQUIRED,
   }),
 });
+
+export const loginSchema = Joi.object({
+   email: Joi.string().email().required().messages({
+    "string.email": MESSAGES.VALIDATION.EMAIL_INVALID,
+    "string.empty": MESSAGES.VALIDATION.EMAIL_REQUIRED,
+    "any.required": MESSAGES.VALIDATION.EMAIL_REQUIRED,
+  }),
+  password: Joi.string()
+    .required()
+    .messages({
+      "string.min": MESSAGES.VALIDATION.PASSWORD_MIN_LENGTH,
+      "string.pattern.base": MESSAGES.VALIDATION.PASSWORD_UPPERCASE,
+      "any.required": MESSAGES.VALIDATION.PASSWORD_REQUIRED,
+})
+});

@@ -212,6 +212,75 @@ const options = {
             },
           },
         },
+        LoginRequest: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: {
+              type: "string",
+              format: "email",
+              example: "yash@example.com",
+            },
+            password: {
+              type: "string",
+              format: "password",
+              example: "SecurePass123",
+            },
+          },
+        },
+        
+        LoginResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true,
+            },
+            message: {
+              type: "string",
+              example: "Login successful.",
+            },
+            data: {
+              type: "object",
+              properties: {
+                token: {
+                  type: "string",
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  description: "JWT Bearer Token for authentication",
+                },
+                user: {
+                  type: "object",
+                  properties: {
+                    id: {
+                      type: "number",
+                      example: 1,
+                    },
+                    first_name: {
+                      type: "string",
+                      example: "John",
+                    },
+                    last_name: {
+                      type: "string",
+                      example: "Doe",
+                    },
+                    email: {
+                      type: "string",
+                      example: "yash@example.com",
+                    },
+                    role: {
+                      type: "string",
+                      example: "customer",
+                    },
+                  },
+                },
+              },
+            },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+            },
+          },
+        },
       },
     },
   },
