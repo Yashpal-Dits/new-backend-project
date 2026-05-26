@@ -26,7 +26,14 @@ export const MESSAGES = {
         RESEND_OTP_FAILED: "Failed to resend OTP",
         INVALID_CREDENTIALS : "The email or password you entered is incorrect.",
         ACCOUNT_NOT_ACTIVATED: "Your account is not yet verified. Please check your email for the verification code.",
-        LOGIN_SUCCESS: "Successfully logged in.."
+        LOGIN_SUCCESS: "Successfully logged in..",
+        LOGOUT_SUCCESS:"You  have been logged out successfully",
+        LOGOUT_FAILED: "Logout failed",
+        FORGOT_PASSWORD_OTP_SENT :"OTP has been  sent to  your registered email. Valid for 5 minutes.",
+        PASSWORD_RESET_SUCCESS: "Your password has been reset successfully.",
+        PASSWORD_SUCCESS_FAILED: "Password reset failed. Please try again.",
+        OLD_PASSWORD_INCORRECT: "Old password is incorrect.",
+        PASSWORD_RESET_FAILED: " Password reset failed."
     },
 
     VALIDATION: {
@@ -38,8 +45,11 @@ export const MESSAGES = {
         PASSWORD_MIN_LENGTH: "Password must be at least 8 characters",
         PASSWORD_UPPERCASE: "Password must contain at least one uppercase letter",
         PASSWORD_NUMBER: "Password must contain at least one number",
+        PASSWORDS_NOT_MATCH: "Passwords not matched",
         OTP_REQUIRED: "OTP is required",
         OTP_LENGTH: "OTP must be 6 digits",
+        NEW_PASSWORD_REQUIRED: "New password required.",
+        
     },
 
     SUCCESS: {
