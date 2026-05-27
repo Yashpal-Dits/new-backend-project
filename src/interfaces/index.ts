@@ -1,4 +1,5 @@
 import { UserRole, RegistrationStatus } from "../enums";
+import {Request} from "express";
 
 // Standard API Response for Success
 
@@ -135,10 +136,12 @@ export interface IOTP {
   user_id?: number;
 }
 
-// Authenticated Request with User
-
-export interface IAuthenticatedRequest extends Express.Request {
-  user?: IUser;
+export interface IAuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    role: UserRole;
+  };
   userId?: number;
 }
 
@@ -158,5 +161,68 @@ export interface ILoginUser {
 export interface ILoginResponseData {
   token: string;
   user: ILoginUser;
-
 }
+
+export interface IForgotPasswordRequest {
+  email: string;
+}
+export interface IRESETPASSWORD {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+export interface ICHANGEPASSWORD {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+
+} 
+export interface IForgotPasswordResponse {
+  email: string;
+  message: string;
+}
+
+export interface ILogoutRequest {
+  userId?: number;
+}
+
+export interface ILogoutResponse {
+  message: string;
+}
+
+export interface IResetPasswordResponse {
+  message: string;
+  email: string;
+}
+
+export interface IResetPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+  
+}
+
+export interface IChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface IForgotPasswordResponse {
+  email: string;
+  message: string;
+}
+
+export interface ILogoutRequest {
+  userId?: number;
+}
+
+export interface ILogoutResponse {
+  message: string;
+}
+
+export interface IPasswordResetResponse {
+  message: string;
+  email: string;
+}
+

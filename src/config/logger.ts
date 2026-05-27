@@ -1,6 +1,6 @@
 import winston from "winston";
 import path from "path";
-import DailyRotateFile from "winston-daily-rotate-file";
+import fs from "fs";
 
 const levels = {
     error: 0,
@@ -31,6 +31,26 @@ const level = () => {
     return env === "development" ? "debug" : "warn";
 };
 
+// Ensure log directories exist (simple approach, no rotation)
+const ensureLogDirs = () => {
+    const dirs = [
+        path.join(process.cwd(), "logs", "error"),
+        path.join(process.cwd(), "logs", "combined"),
+        path.join(process.cwd(), "logs", "http"),
+    ];
+    for (const d of dirs) {
+        try {
+            if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+        } catch (err) {
+            // If directory creation fails, fallback to console
+            // eslint-disable-next-line no-console
+            console.error(`Could not create log directory ${d}:`, err);
+        }
+    }
+};
+
+ensureLogDirs();
+
 const logger = winston.createLogger({
     level: level(),
     levels,
@@ -42,40 +62,28 @@ const logger = winston.createLogger({
                 winston.format.simple()
             ),
         }),
-        // Error log file 
-        new DailyRotateFile({
-            filename: path.join(process.cwd(), "logs", "error", "error-%DATE%.log"),
-            datePattern: "YYYY-MM-DD",
+        // Error log file
+        new winston.transports.File({
+            filename: path.join(process.cwd(), "logs", "error", "error.log"),
             level: "error",
-            maxSize: "20m",
-            maxFiles: "14d",
             format: winston.format.combine(
                 winston.format.timestamp(),
                 winston.format.json()
             ),
-
         }),
-        //  Combined log file 
-        new DailyRotateFile({
-            filename: path.join(process.cwd(),
-                "logs", "combined", "combined-%DATE%.log"),
-            datePattern: "YYYY-MM-DD",
-            level: "combined",
-            maxSize: "20m",
-            maxFiles: "14d",
+        // Combined log file
+        new winston.transports.File({
+            filename: path.join(process.cwd(), "logs", "combined", "combined.log"),
+            level: "info",
             format: winston.format.combine(
                 winston.format.timestamp(),
                 winston.format.json()
             ),
         }),
         // HTTP log file
-        new DailyRotateFile({
-            filename: path.join(process.cwd(),
-                "logs", "http", "http-%DATE%.log"),
-            datePattern: "YYYY-MM-DD",
-            level:"http",
-            maxSize: "20m",
-            maxFiles: "14d",
+        new winston.transports.File({
+            filename: path.join(process.cwd(), "logs", "http", "http.log"),
+            level: "http",
             format: winston.format.combine(
                 winston.format.timestamp(),
                 winston.format.json()

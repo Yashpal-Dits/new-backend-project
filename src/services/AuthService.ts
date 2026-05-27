@@ -2,12 +2,13 @@ import bcrypt from "bcrypt";
 import * as userRepo from "../repositories/UserRepository";
 import * as otpService from "./OTPService";
 import { MESSAGES } from "../constants/messages";
-import { UserRole, RegistrationStatus } from "../enums";
+import { UserRole, RegistrationStatus, OTPPurpose} from "../enums";
+import { sendPasswordResetSuccessEmail } from "./EmailService";
 import logger from "../config/logger";
 import { logError, logAuthEvent } from "../middlewares/logger";
 import jwt from "jsonwebtoken";
 import type {
-  IRegisterRequest,
+   IRegisterRequest,
   IVerifyOTPRequest,
   IAuthServiceResponse,
   IRegisterResponseData,
@@ -15,8 +16,12 @@ import type {
   IExistingUserRegistrationData,
   IVerifyOTPResponseData,
   ILoginRequest,
-  ILoginResponseData,} from "../interfaces/index"
-
+  ILoginResponseData,
+  IForgotPasswordRequest,
+  IResetPasswordRequest,
+  IChangePasswordRequest,
+  IForgotPasswordResponse,
+  IPasswordResetResponse,} from "../interfaces/index"
 
 export const register = async (
   data: IRegisterRequest
@@ -229,7 +234,7 @@ export const login = async (
       };
     }
 
-    // 2. Check if user is active (OTP verified)
+    // 2. Check if user is active 
     if (!user.is_active) {
       logger.warn(`Login attempt for inactive account: ${user.email}`);
       return {
@@ -281,6 +286,260 @@ export const login = async (
     return {
       success: false,
       message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
+
+export const forgotPassword = async (
+  data: IForgotPasswordRequest
+): Promise<IAuthServiceResponse<IForgotPasswordResponse>> => {
+  try {
+    logger.info(`Forgot password request for: ${data.email}`);
+
+    const user = await userRepo.findByEmail(data.email);
+    if (!user) {
+      
+      logger.warn(`Forgot password for non-existent email: ${data.email}`);
+      return {
+        success: true,
+        message: MESSAGES.AUTH.FORGOT_PASSWORD_OTP_SENT,
+        data: {
+          email: data.email,
+          message:
+            "If your email exists in our system, you will receive an OTP.",
+        },
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    logger.info(`Sending forgot password OTP to: ${data.email}`);
+    const otpResult = await otpService.sendForgotPasswordOTP(
+      data.email
+    );
+
+    if (!otpResult.success) {
+      logger.error(
+        `Failed to send forgot password OTP to: ${data.email}`
+      );
+      return {
+        success: false,
+        message: otpResult.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    logAuthEvent("FORGOT_PASSWORD_REQUEST", user.id, user.email, true);
+
+    return {
+      success: true,
+      message: otpResult.message,
+      data: {
+        email: data.email,
+        message:
+          "An OTP has been sent to your email. Use it to reset your password.",
+      },
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "AuthService.forgotPassword",
+      body: { email: data.email },
+    });
+    return {
+      success: false,
+      message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
+
+export const resetPassword = async (
+  data: IResetPasswordRequest
+): Promise<IAuthServiceResponse<IPasswordResetResponse>> => {
+  try {
+    logger.info(`Password reset attempt for: ${data.email}`);
+
+    const user = await userRepo.findByEmail(data.email);
+    if (!user) {
+      logger.warn(`Password reset for non-existent email: ${data.email}`);
+      return {
+        success: false,
+        message: MESSAGES.AUTH.USER_NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Verify OTP for password reset
+    const otpResult = await otpService.verifyOTP(
+      data.email,
+      data.otp,
+      OTPPurpose.PASSWORD_RESET
+    );
+
+    if (!otpResult.success) {
+      logger.warn(
+        `Invalid OTP for password reset: ${data.email}`
+      );
+      return {
+        success: false,
+        message: otpResult.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+
+    // Update password
+    await userRepo.updatePassword(user.id, hashedPassword);
+
+    logger.info(`Password reset successfully for: ${data.email}`);
+
+    // Send success email
+    await sendPasswordResetSuccessEmail(
+      user.email,
+      user.first_name
+    );
+
+    logAuthEvent("PASSWORD_RESET_SUCCESS", user.id, user.email, true);
+
+    return {
+      success: true,
+      message: MESSAGES.AUTH.PASSWORD_RESET_SUCCESS,
+      data: {
+        email: user.email,
+        message: "Your password has been reset successfully.",
+      },
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "AuthService.resetPassword",
+      body: { email: data.email },
+    });
+    return {
+      success: false,
+      message: MESSAGES.AUTH.PASSWORD_RESET_FAILED,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
+
+export const changePassword = async (
+  userId: number,
+  data: IChangePasswordRequest
+): Promise<IAuthServiceResponse> => {
+  try {
+    logger.info(`Change password request for user ID: ${userId}`);
+
+    // Find user with password
+    const user = await userRepo.findByIdWithPassword(userId);
+    if (!user) {
+      logger.warn(`User not found for password change: ${userId}`);
+      return {
+        success: false,
+        message: MESSAGES.AUTH.USER_NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(
+      data.currentPassword,
+      user.password
+    );
+
+    if (!isCurrentPasswordValid) {
+      logger.warn(
+        `Invalid current password for user: ${user.email}`
+      );
+      return {
+        success: false,
+        message: MESSAGES.AUTH.OLD_PASSWORD_INCORRECT,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Check if new password matches confirm password
+    if (data.newPassword !== data.confirmPassword) {
+      logger.warn(`Passwords do not match for user: ${user.email}`);
+      return {
+        success: false,
+        message: MESSAGES.VALIDATION.PASSWORDS_NOT_MATCH,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+
+    // Update password
+    await userRepo.updatePassword(userId, hashedPassword);
+
+    logger.info(`Password changed successfully for user: ${user.email}`);
+
+    // Send success email
+    await sendPasswordResetSuccessEmail(
+      user.email,
+      user.first_name
+    );
+
+    logAuthEvent("CHANGE_PASSWORD_SUCCESS", userId, user.email, true);
+
+    return {
+      success: true,
+      message: MESSAGES.AUTH.PASSWORD_RESET_SUCCESS,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "AuthService.changePassword",
+      body: { userId },
+    });
+    return {
+      success: false,
+      message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
+export const logout = async (
+  userId: number
+): Promise<IAuthServiceResponse> => {
+  try {
+    logger.info(`Logout request for user ID: ${userId}`);
+
+    const user = await userRepo.findById(userId);
+    if (!user) {
+      logger.warn(`User not found for logout: ${userId}`);
+      return {
+        success: false,
+        message: MESSAGES.AUTH.USER_NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    logger.info(`User logged out successfully: ${user.email}`);
+    logAuthEvent("LOGOUT", userId, user.email, true);
+
+    return {
+      success: true,
+      message: MESSAGES.AUTH.LOGOUT_SUCCESS,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "AuthService.logout",
+      body: { userId },
+    });
+    return {
+      success: false,
+      message: MESSAGES.AUTH.LOGOUT_FAILED,
       timestamp: new Date().toISOString(),
     };
   }

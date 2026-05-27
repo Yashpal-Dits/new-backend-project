@@ -7,13 +7,21 @@ import { logAuthEvent, logError } from "../middlewares/logger";
 import type {
   IRegisterRequest,
   IVerifyOTPRequest,
+  ILoginRequest,
   IResendOTPRequest,
+  IForgotPasswordRequest,
+  IResetPasswordRequest,
+  IChangePasswordRequest,
   IAuthServiceResponse,
   IRegisterResponseData,
   IVerifyOTPResponseData,
-  ILoginRequest,
   ILoginResponseData,
+  IForgotPasswordResponse,
+  IResetPasswordResponse,
+  IAuthenticatedRequest,
+
 } from "../interfaces";
+
 
 
 
@@ -149,3 +157,114 @@ export const login = async (
     });
   }
 };
+export const forgotPassword = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const data: IForgotPasswordRequest = req.body;
+    logger.info(`Forgot passeword request for email: ${data.email}`);
+    const result: IAuthServiceResponse<IForgotPasswordResponse> = await authService.forgotPassword(data);
+    return res.status(result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST).json(result);
+
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "api/auth/forgot-password",
+      method: "POST",
+      body: req.body,
+    });
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Internal server error",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const data: IResetPasswordRequest = req.body;
+    logger.info(`Password reset attempt for email: ${data.email}`);
+    const result: IAuthServiceResponse<IResetPasswordResponse> = await authService.resetPassword(data);
+    return res.status(result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST).json(result);
+
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "api/auth/reset-password",
+      method: "POST",
+      body: req.body,
+    })
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+export const changePassword = async (
+  req: IAuthenticatedRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const userId = req.userId;
+    const data: IChangePasswordRequest = req.body;
+
+    logger.info(`Change password request for user ID: ${userId}`);
+
+    if (!userId) {
+      return res.status(HttpStatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: "User not authenticated",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    const result = await authService.changePassword(userId, data);
+
+    return res
+      .status(
+        result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST
+      )
+      .json(result);
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "/api/auth/change-password",
+      method: "POST",
+      body: req.body,
+    });
+
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+
+export const logout = async (req: IAuthenticatedRequest, res: Response): Promise<Response> => {
+  try {
+    const userId = req.userId;
+    logger.info(`Logout attempt for user ID: ${userId}`);
+
+    if (!userId) {
+      return res.status(HttpStatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: " User is not authenticated",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    const result = await authService.logout(userId);
+    return res.status(HttpStatusCode.OK).json(result);
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "api/auth/logout",
+      method: "POST",
+    });
+
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: MESSAGES.AUTH.INTERNAL_ERROR,
+      timestamp: new Date().toISOString
+    })
+  }
+}

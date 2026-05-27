@@ -1,3 +1,4 @@
+
 import { AppDataSource } from "../config/dataSource";
 import { User } from "../entities/UserEntity";
 import type { IUserStatus, ICreateUserResponse } from "../interfaces";
@@ -59,4 +60,28 @@ export const getUserStatus = async (email: string): Promise<IUserStatus> => {
     isEmailVerified: user.is_email_verified,
     isActive: user.is_active,
   };
+};
+
+export const updatePassword = async (
+  userId: number,
+  hashedPassword: string
+): Promise<void> => {
+  await userRepository.update(userId, {
+    password: hashedPassword,
+  });
+};
+
+export const findByIdWithPassword = async(id : number) :Promise<User| null> => {
+  return userRepository.findOne({
+    where : {id},
+    select:[
+      "id", 
+      "email",
+      "password",
+      "first_name",
+      "last_name",
+      "is_active",
+      "role"
+    ],
+  });
 };

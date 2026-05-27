@@ -25,7 +25,7 @@ export const requestLogger  = (
     next();
 };
 
-// Log authentication events 
+
 export const logAuthEvent = (
     action : string,
     userId?: number,
@@ -41,7 +41,7 @@ export const logAuthEvent = (
     });
 };
 
-// Log errors with contaxt 
+
 
 export const logError = (
     error: Error,

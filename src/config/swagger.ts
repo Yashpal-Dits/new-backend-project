@@ -7,7 +7,7 @@ const options = {
       title: "Auth API Documentation",
       version: "1.0.0",
       description: "User Registration and Email OTP Verification API",
-    
+
     },
     servers: [
       {
@@ -16,6 +16,15 @@ const options = {
       },
     ],
     components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description:
+            "JWT Authorization header using the Bearer scheme. Example: Authorization: Bearer eyJhbGciOiJIUzI1NiIs...",
+        },
+      },
       schemas: {
         RegisterRequest: {
           type: "object",
@@ -69,6 +78,80 @@ const options = {
             },
           },
         },
+
+        ForgotPasswordRequest: {
+          type: "object",
+          required: ["email"],
+          properties: {
+            email: {
+              type: "string",
+              format: "email",
+              example: "yash@gmail.com",
+              description: "User's  registered email address"
+            }
+          }
+        },
+        ResetPasswordRequest: {
+          type: 'object',
+          required: ["email", "otp", "newPassword"],
+          properties: {
+            email: {
+              type: "string",
+              format: "email",
+              example: "yash@gmail.com",
+              description: "User's  registered email address"
+            },
+            otp: {
+              type: "string",
+              minLength: 6,
+              maxLength: 6,
+              pattern: "^[0-9]{6}$",
+              example: "123456",
+              description: "OTP code sent to email for password reset",
+            },
+            newPassword: {
+              ype: "string",
+              format: "password",
+              minLength: 8,
+              example: "NewPassword456",
+              description:
+                "New password must be at least 8 characters and contain uppercase letter and number",
+            }
+          }
+        },
+        ChangePasswordRequest: {
+          type: "object",
+          required: ["currentPassword", "newPassword", "confirmPassword"],
+          properties: {
+            currentPassword: {
+              format: "password",
+              example: "OldPassword123",
+              description: "User's current password"
+            },
+            newPassword: {
+              type: "string",
+              format: "password",
+              minLength: 8,
+              example: "NewPassword456",
+              description:
+                "New password must be at least 8 characters and contain uppercase letter and number",
+            },
+            confirmPassword: {
+              type: "string",
+              format: "password",
+              example: "NewPassword456",
+              description: "Must match newPassword",
+            }
+          }
+        },
+        LogoutRequest: {
+          type: "object",
+          description:
+            "Logout request (body is empty, token is sent in Authorization header)",
+          properties: {},
+          example: {},
+        },
+
         SuccessResponse: {
           type: "object",
           properties: {
@@ -228,7 +311,7 @@ const options = {
             },
           },
         },
-        
+
         LoginResponse: {
           type: "object",
           properties: {
@@ -274,6 +357,153 @@ const options = {
                   },
                 },
               },
+            },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+            },
+          },
+        },
+        ForgotPasswordResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              exmaple: true,
+            },
+            message: {
+              type: "string",
+              example: " OTP has been sent to your registered email. valid for 10 minutes."
+            },
+            data: {
+              type: "object",
+              properties: {
+                email: {
+                  type: "string",
+                  example: "yash@gmail.com"
+                },
+                message: {
+                  type: "string",
+                  example:
+                    "An OTP has been sent to your email. Use it to reset your password.",
+                },
+              },
+            },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+            }
+          }
+
+        },
+        ResetPasswordResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true,
+            },
+            message: {
+              type: "string",
+              example: "Your password has been reset successfully.",
+            },
+            data: {
+              type: "object",
+              properties: {
+                email: {
+                  type: "string",
+                  example: "john@example.com",
+                },
+                message: {
+                  type: "string",
+                  example: "Your password has been reset successfully.",
+                },
+              },
+            },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+            },
+          },
+        },
+
+
+        ChangePasswordResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true,
+            },
+            message: {
+              type: "string",
+              example: "Your password has been reset successfully.",
+            },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+            },
+          },
+        },
+
+
+        LogoutResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true,
+            },
+            message: {
+              type: "string",
+              example: "You have been logged out successfully.",
+            },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+            },
+          },
+        },
+
+        ValidationErrorResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Validation failed",
+            },
+            errors: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+              example: [
+                "Email is required",
+                "Password must contain uppercase letter",
+              ],
+            },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+            },
+          },
+        },
+
+
+        UnauthorizedErrorResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "No token provided",
             },
             timestamp: {
               type: "string",
