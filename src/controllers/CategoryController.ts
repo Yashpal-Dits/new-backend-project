@@ -8,7 +8,7 @@ import type {
     ICreateCategoryRequest,
     IUpdateCategoryRequest,
 } from "../interfaces/categoryInterfaces";
-import { http } from "winston";
+
 
 export const createCategory = async (
     req: Request,
@@ -71,7 +71,7 @@ export const getCategoryByName = async (
     } catch (error) {
         logError(error as Error, {
             endpoint: `api/categories/name/${req.params.name}`,
-            method: "GET"
+            method: "GET",
         });
         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
@@ -80,6 +80,106 @@ export const getCategoryByName = async (
 
         });
     }
+};
 
-    ;
-}
+
+export const getAllCategories = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    logger.info("Fetching all categories");
+
+    const result = await CategoryService.getAllCategories();
+
+    return res.status(HttpStatusCode.OK).json(result);
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "/api/categories",
+      method: "GET",
+    });
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CATEGORY_MESSAGES.CATEGORY.FETCH_FAILED,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+export const updateCategory = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const { id } = req.params;
+        const updateData: IUpdateCategoryRequest = req.body;
+
+        logger.info(`Updating category with ID : ${id}`);
+
+        const result = await CategoryService.updateCategory(Number(id), updateData);
+
+        return res.status(result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST)
+            .json(result);
+    } catch (error) {
+        logError(error as Error, {
+            endpoint: `api/categories/${req.params.id}`,
+            method: "PUT",
+            body: req.body,
+        });
+        return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: CATEGORY_MESSAGES.CATEGORY.UPDATE_FAILED,
+            timestamp: new Date().toDateString(),
+        });
+    }
+};
+
+export const deleteCategory = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const { id } = req.params;
+        logger.info(`Deleting category with ID : ${id}`);
+
+        const result = await CategoryService.deleteCategory(Number(id));
+        return res
+            .status(result.success ? HttpStatusCode.OK : HttpStatusCode.NOT_FOUND)
+            .json(result);
+    } catch (error) {
+        logError(error as Error, {
+            endpoint: `/api/categories/${req.params.id}`,
+            method: "DELETE"
+        });
+        return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: CATEGORY_MESSAGES.CATEGORY.DELETE_FAILED,
+            timestamp: new Date().toISOString(),
+        });
+    }
+};
+
+export const checkCategoryExists = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { id } = req.params;
+
+    logger.info(`Checking if category exists with ID: ${id}`);
+
+    const result = await CategoryService.checkCategoryExists(Number(id));
+
+    return res.status(HttpStatusCode.OK).json(result);
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: `/api/categories/${req.params.id}/exists`,
+      method: "GET",
+    });
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CATEGORY_MESSAGES.CATEGORY.FETCH_FAILED,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
