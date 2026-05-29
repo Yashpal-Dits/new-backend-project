@@ -30,6 +30,7 @@ export interface IRegisterRequest {
   last_name: string;
   email: string;
   password: string;
+  role : UserRole;
 }
 
 //  Verify OTP Request

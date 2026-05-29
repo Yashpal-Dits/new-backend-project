@@ -15,11 +15,15 @@ export const createProduct = async (req: Request, res: Response): Promise<Respon
     logger.info(`Creating product: ${productData.name}`);
 
     const result = await ProductService.createProduct(productData);
+
     return res
       .status(result.success ? HttpStatusCode.CREATED : HttpStatusCode.BAD_REQUEST)
       .json(result);
   } catch (error) {
-    logError(error as Error, { endpoint: "/api/products", method: "POST", body: req.body });
+    logError(error as Error, {
+       endpoint: "/api/products",
+       method: "POST", body: req.body });
+
     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: PRODUCT_MESSAGES.PRODUCT.CREATION_FAILED,
@@ -34,9 +38,11 @@ export const getProductById = async (req: Request, res: Response): Promise<Respo
     logger.info(`Fetching product with ID: ${id}`);
 
     const result = await ProductService.getProductById(Number(id));
+    
     return res
       .status(result.success ? HttpStatusCode.OK : HttpStatusCode.NOT_FOUND)
       .json(result);
+
   } catch (error) {
     logError(error as Error, { endpoint: `/api/products/${req.params.id}`, method: "GET" });
     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({

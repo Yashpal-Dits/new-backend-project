@@ -24,7 +24,11 @@ export const registerSchema = Joi.object({
       "string.min": MESSAGES.VALIDATION.PASSWORD_MIN_LENGTH,
       "string.pattern.base": MESSAGES.VALIDATION.PASSWORD_UPPERCASE,
       "any.required": MESSAGES.VALIDATION.PASSWORD_REQUIRED,
+      
     }),
+
+    role: Joi.string().valid("customer", "seller", "admin").default("customer")
+
 });
 
 export const verifyOTPSchema = Joi.object({
@@ -57,7 +61,7 @@ export const loginSchema = Joi.object({
       "string.min": MESSAGES.VALIDATION.PASSWORD_MIN_LENGTH,
       "string.pattern.base": MESSAGES.VALIDATION.PASSWORD_UPPERCASE,
       "any.required": MESSAGES.VALIDATION.PASSWORD_REQUIRED,
-})
+}),
 });
 
 export const forgotPasswordSchema = Joi.object({

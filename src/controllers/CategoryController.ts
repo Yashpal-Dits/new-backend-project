@@ -16,7 +16,9 @@ export const createCategory = async (
 ): Promise<Response> => {
     try {
         const categoryData: ICreateCategoryRequest = req.body;
+
         logger.info(`Creating category:${categoryData.name}`);
+        
         const result = await CategoryService.createCategory(categoryData)
         return res.status(result.success ? HttpStatusCode.CREATED : HttpStatusCode.BAD_REQUEST).json(result);
     } catch (error) {
@@ -61,9 +63,9 @@ export const getCategoryByName = async (
 ): Promise<Response> => {
     try {
         const { name } = req.params;
-        logger.info(`Fethcing category by name:${name}`);
+        logger.info(`Fetching category by name: ${name}`);
 
-        const result = await CategoryService.getCategoryByName("name");
+        const result = await CategoryService.getCategoryByName(name as string );
         return res
             .status(result.success ? HttpStatusCode.OK : HttpStatusCode.NOT_FOUND)
             .json(result);
@@ -84,7 +86,7 @@ export const getCategoryByName = async (
 
 
 export const getAllCategories = async (
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<Response> => {
   try {

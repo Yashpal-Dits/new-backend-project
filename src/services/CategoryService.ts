@@ -10,7 +10,7 @@ import type {
   ICategoryResponse,
 } from "../interfaces/categoryInterfaces";
 
-// Helper function to map Category entity to response interface
+// Helper function map Category entity  to response interface
 const mapCategoryToResponse = (category: Category): ICategoryResponse => {
   return {
     id: category.id,

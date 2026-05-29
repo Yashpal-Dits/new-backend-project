@@ -16,6 +16,7 @@ export interface IUpdateProductRequest {
   stock?: number;
   sku?: string;
   is_active?: boolean;
+  store_id?: number;
 }
 
 // Response Interface
