@@ -24,28 +24,32 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - name
- *             properties:
- *               name:
- *                 type: string
- *                 minLength: 3
- *                 maxLength: 50
- *                 example: "Electronics"
- *               description:
- *                 type: string
- *                 maxLength: 500
- *                 example: "Electronic devices and gadgets"
+ *             $ref: '#/components/schemas/CreateCategoryRequest'
  *     responses:
  *       201:
  *         description: Category created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryResponse'
  *       400:
  *         description: Validation error or category already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
   "/",
@@ -65,8 +69,16 @@ router.post(
  *     responses:
  *       200:
  *         description: Categories fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoriesListResponse'
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/", categoryController.getAllCategories);
 
@@ -83,16 +95,28 @@ router.get("/", categoryController.getAllCategories);
  *         name: id
  *         required: true
  *         schema:
- *           type: number
+ *           type: integer
  *         description: Category ID
  *         example: 1
  *     responses:
  *       200:
  *         description: Category fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryResponse'
  *       404:
  *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/:id", categoryController.getCategoryById);
 
@@ -115,10 +139,22 @@ router.get("/:id", categoryController.getCategoryById);
  *     responses:
  *       200:
  *         description: Category fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryResponse'
  *       404:
  *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/name/:name", categoryController.getCategoryByName);
 
@@ -135,14 +171,22 @@ router.get("/name/:name", categoryController.getCategoryByName);
  *         name: id
  *         required: true
  *         schema:
- *           type: number
+ *           type: integer
  *         description: Category ID
  *         example: 1
  *     responses:
  *       200:
  *         description: Category existence check completed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryExistsResponse'
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/:id/exists", categoryController.checkCategoryExists);
 
@@ -161,7 +205,7 @@ router.get("/:id/exists", categoryController.checkCategoryExists);
  *         name: id
  *         required: true
  *         schema:
- *           type: number
+ *           type: integer
  *         description: Category ID
  *         example: 1
  *     requestBody:
@@ -169,28 +213,38 @@ router.get("/:id/exists", categoryController.checkCategoryExists);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 minLength: 3
- *                 maxLength: 50
- *                 example: "Electronics Updated"
- *               description:
- *                 type: string
- *                 maxLength: 500
- *                 example: "Updated electronics description"
+ *             $ref: '#/components/schemas/UpdateCategoryRequest'
  *     responses:
  *       200:
  *         description: Category updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryResponse'
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put(
   "/:id",
@@ -214,20 +268,40 @@ router.put(
  *         name: id
  *         required: true
  *         schema:
- *           type: number
+ *           type: integer
  *         description: Category ID
  *         example: 1
  *     responses:
  *       200:
  *         description: Category deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
  *         description: Cannot delete category with products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.delete("/:id", authenticate, categoryController.deleteCategory);
 

@@ -1,4 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
+import { createCategory } from "../repositories/CategoryRepository";
 
 const options = {
   definition: {
@@ -151,7 +152,51 @@ const options = {
           properties: {},
           example: {},
         },
-
+        CreateCategoryRequest: {
+          type: "object",
+          required: ["name"],
+          properties: {
+            name: { type: "string", example: "Electronics" },
+            description: { type: "string", nullable: true, example: "All electronic items and gadgets" },
+          },
+        },
+        UpdateCategoryRequest: {
+          type: "object",
+          properties: {
+            name: { type: "string", example: "Updated Electronics" },
+            description: { type: "string", nullable: true, example: "Updated description for electronics" },
+          },
+        },
+        CategoryResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Category created successfully" },
+            data: { $ref: "#/components/schemas/Category" },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        CategoriesListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Categories fetched successfully" },
+            data: {
+              type: "array",
+              items: { $ref: "#/components/schemas/Category" },
+            },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        CategoryExistsResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Category exists check completed" },
+            data: { type: "boolean", example: true },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
         SuccessResponse: {
           type: "object",
           properties: {
