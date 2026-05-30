@@ -1,0 +1,25 @@
+export const STORE_MESSAGES = {
+  STORE: {
+    CREATION_SUCCESS: "Store created successfully",
+    CREATION_FAILED: "Failed to create store",
+    FETCH_SUCCESS: "Store fetched successfully",
+    FETCH_FAILED: "Failed to fetch store",
+    FETCH_ALL_SUCCESS: "Stores fetched successfully",
+    UPDATE_SUCCESS: "Store updated successfully",
+    UPDATE_FAILED: "Failed to update store",
+    DELETE_SUCCESS: "Store deleted successfully",
+    DELETE_FAILED: "Failed to delete store",
+    NOT_FOUND: "Store not found",
+    USER_NOT_FOUND: "User not found",
+    STORE_ALREADY_EXISTS: "A store with this name already exists for this user",
+    CANNOT_DELETE_WITH_PRODUCTS: "Cannot delete store while products exist",
+    VALIDATION: {
+      USER_ID_REQUIRED: "User ID is required",
+      USER_ID_INVALID: "User ID must be a valid number",
+      STORE_NAME_REQUIRED: "Store name is required",
+      STORE_NAME_MIN_LENGTH: "Store name must be at least 3 characters",
+      STORE_NAME_MAX_LENGTH: "Store name must be at most 100 characters",
+      BUSINESS_EMAIL_INVALID: "Business email must be a valid email address",
+    },
+  },
+};

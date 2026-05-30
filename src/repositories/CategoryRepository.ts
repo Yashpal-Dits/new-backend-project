@@ -46,7 +46,7 @@ export const nameExists = async (
     where: { name },
   });
 
-  // No category found
+
   if (!category) {
     return false;
   }

@@ -23,6 +23,7 @@ export const createProductSchema = Joi.object({
 });
 
 export const updateProductSchema = Joi.object({
+  store_id: Joi.number().optional(),
   name: Joi.string().min(2).max(100).optional(),
   price: Joi.number().positive().optional(),
   categories_id: Joi.number().optional(),

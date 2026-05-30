@@ -118,8 +118,6 @@ router.get("/", categoryController.getAllCategories);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get("/:id", categoryController.getCategoryById);
-
 /**
  * @swagger
  * /api/categories/name/{name}:
@@ -157,6 +155,8 @@ router.get("/:id", categoryController.getCategoryById);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/name/:name", categoryController.getCategoryByName);
+
+router.get("/:id", categoryController.getCategoryById);
 
 /**
  * @swagger

@@ -1,5 +1,6 @@
 import * as ProductRepository from "../repositories/ProductRepository";
 import { PRODUCT_MESSAGES } from "../constants/productMessages";
+import logger from "../config/logger";
 import type {
   ICreateProductRequest,
   IUpdateProductRequest,
@@ -8,13 +9,35 @@ import type {
 } from "../interfaces/productInterfaces";
 import { Product } from "../entities/ProductEntity";
 
-// ==================== CREATE ====================
+//  CREATE PRODUCT 
 export const createProduct = async (
   productData: ICreateProductRequest
 ): Promise<IProductServiceResponse<IProductResponse>> => {
+
+  // Check if store exists
+  const storeExist = await ProductRepository.storeExists(productData.store_id);
+  if (!storeExist) {
+    return {
+      success: false,
+      message: PRODUCT_MESSAGES.PRODUCT.STORE_NOT_FOUND,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  // Check if category exists
+  const categoryExist = await ProductRepository.categoryExists(productData.categories_id);
+  if (!categoryExist) {
+    return {
+      success: false,
+      message: PRODUCT_MESSAGES.PRODUCT.CATEGORY_NOT_FOUND,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  // Check SKU uniqueness
   if (productData.sku) {
-    const exists = await ProductRepository.skuExists(productData.sku);
-    if (exists) {
+    const skuExist = await ProductRepository.skuExists(productData.sku);
+    if (skuExist) {
       return {
         success: false,
         message: PRODUCT_MESSAGES.PRODUCT.ALREADY_EXISTS,
@@ -23,6 +46,7 @@ export const createProduct = async (
     }
   }
 
+  logger.info(`Creating product for store ${productData.store_id} and category ${productData.categories_id}`);
   const newProduct = await ProductRepository.createProduct(productData);
 
   return {
@@ -33,7 +57,70 @@ export const createProduct = async (
   };
 };
 
-// ==================== GET BY ID ====================
+// UPDATE PRODUCT 
+export const updateProduct = async (
+  id: number,
+  updateData: IUpdateProductRequest
+): Promise<IProductServiceResponse<IProductResponse>> => {
+
+  const existing = await ProductRepository.findProductById(id);
+  if (!existing) {
+    return {
+      success: false,
+      message: PRODUCT_MESSAGES.PRODUCT.NOT_FOUND,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  // Validate store if provided
+  if (updateData.store_id) {
+    const storeExist = await ProductRepository.storeExists(updateData.store_id);
+    if (!storeExist) {
+      return {
+        success: false,
+        message: PRODUCT_MESSAGES.PRODUCT.STORE_NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
+  // Validate category if provided
+  if (updateData.categories_id) {
+    const categoryExist = await ProductRepository.categoryExists(updateData.categories_id);
+    if (!categoryExist) {
+      return {
+        success: false,
+        message: PRODUCT_MESSAGES.PRODUCT.CATEGORY_NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
+  // Check SKU uniqueness
+  if (updateData.sku) {
+    const skuExist = await ProductRepository.skuExists(updateData.sku, id);
+    if (skuExist) {
+      return {
+        success: false,
+        message: PRODUCT_MESSAGES.PRODUCT.ALREADY_EXISTS,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
+  await ProductRepository.updateProduct(id, updateData);
+  const updated = await ProductRepository.findProductById(id);
+
+  logger.info(`Updated product ${id} successfully`);
+  return {
+    success: true,
+    message: PRODUCT_MESSAGES.PRODUCT.UPDATE_SUCCESS,
+    data: mapToResponse(updated!),
+    timestamp: new Date().toISOString(),
+  };
+};
+
+// GET  PRODUCT BY ID
 export const getProductById = async (id: number): Promise<IProductServiceResponse<IProductResponse>> => {
   const product = await ProductRepository.findProductById(id);
 
@@ -53,7 +140,7 @@ export const getProductById = async (id: number): Promise<IProductServiceRespons
   };
 };
 
-// ==================== GET ALL (WITH SIMPLE PAGINATION) ====================
+//  GET ALL PRODUCT
 export const getAllProducts = async (
   page: number = 1,
   limit: number = 10
@@ -78,44 +165,7 @@ export const getAllProducts = async (
   };
 };
 
-// ==================== UPDATE ====================
-export const updateProduct = async (
-  id: number,
-  updateData: IUpdateProductRequest
-): Promise<IProductServiceResponse<IProductResponse>> => {
-  const existing = await ProductRepository.findProductById(id);
-
-  if (!existing) {
-    return {
-      success: false,
-      message: PRODUCT_MESSAGES.PRODUCT.NOT_FOUND,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  if (updateData.sku) {
-    const exists = await ProductRepository.skuExists(updateData.sku, id);
-    if (exists) {
-      return {
-        success: false,
-        message: PRODUCT_MESSAGES.PRODUCT.ALREADY_EXISTS,
-        timestamp: new Date().toISOString(),
-      };
-    }
-  }
-
-  await ProductRepository.updateProduct(id, updateData);
-  const updated = await ProductRepository.findProductById(id);
-
-  return {
-    success: true,
-    message: PRODUCT_MESSAGES.PRODUCT.UPDATE_SUCCESS,
-    data: mapToResponse(updated!),
-    timestamp: new Date().toISOString(),
-  };
-};
-
-// ==================== DELETE ====================
+//  DELETE PRODUCT
 export const deleteProduct = async (id: number): Promise<IProductServiceResponse> => {
   const existing = await ProductRepository.findProductById(id);
 
@@ -136,7 +186,7 @@ export const deleteProduct = async (id: number): Promise<IProductServiceResponse
   };
 };
 
-// ==================== HELPER ====================
+//  PRODUCT RESPONSE HELPER 
 function mapToResponse(product: Product): IProductResponse {
   return {
     id: product.id,

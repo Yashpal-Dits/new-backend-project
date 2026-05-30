@@ -10,5 +10,7 @@ export const PRODUCT_MESSAGES = {
     DELETE_FAILED: "Failed to delete product",
     NOT_FOUND: "Product not found",
     ALREADY_EXISTS: "Product with this SKU already exists",
+    STORE_NOT_FOUND: "Store not found",
+    CATEGORY_NOT_FOUND: "Category not found",
   },
 };
