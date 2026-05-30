@@ -1,5 +1,4 @@
 import swaggerJsdoc from "swagger-jsdoc";
-import { createCategory } from "../repositories/CategoryRepository";
 
 const options = {
   definition: {

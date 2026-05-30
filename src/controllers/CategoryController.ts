@@ -84,7 +84,7 @@ export const getCategoryByName = async (
 
 
 export const getAllCategories = async (
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<Response> => {
   try {
