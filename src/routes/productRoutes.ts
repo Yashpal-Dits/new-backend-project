@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as productController from "../controllers/ProductController";
 import { validateRequest } from "../middlewares/validateRequest";
 import { authenticate } from "../middlewares/authMiddleware";
+import { uploadProductImage } from "../middlewares/upload";
 import {
   createProductSchema,
   updateProductSchema,
@@ -14,7 +15,7 @@ const router = Router();
  * /api/products:
  *   post:
  *     summary: Create a new product
- *     description: Create a new product (Authenticated users only)
+ *     description: Create a new product with optional image upload (Authenticated users only)
  *     tags:
  *       - Products
  *     security:
@@ -22,32 +23,54 @@ const router = Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/CreateProductRequest'
+ *             type: object
+ *             required:
+ *               - store_id
+ *               - name
+ *               - price
+ *               - categories_id
+ *             properties:
+ *               store_id:
+ *                 type: integer
+ *                 example: 1
+ *               name:
+ *                 type: string
+ *                 example: Wireless Headphones
+ *               price:
+ *                 type: number
+ *                 example: 2999.99
+ *               categories_id:
+ *                 type: integer
+ *                 example: 2
+ *               stock:
+ *                 type: integer
+ *                 example: 50
+ *               description:
+ *                 type: string
+ *                 example: High quality wireless headphones
+ *               sku:
+ *                 type: string
+ *                 example: WH-001
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *               is_active:
+ *                 type: boolean
+ *                 example: true
  *     responses:
  *       201:
  *         description: Product created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ProductResponse'
  *       400:
  *         description: Validation or request error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
   "/",
   authenticate,
+  uploadProductImage.single("image"),
   validateRequest(createProductSchema),
   productController.createProduct
 );
@@ -76,16 +99,8 @@ router.post(
  *     responses:
  *       200:
  *         description: Products fetched successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ProductsListResponse'
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/", productController.getAllProducts);
 
@@ -106,22 +121,10 @@ router.get("/", productController.getAllProducts);
  *     responses:
  *       200:
  *         description: Product fetched successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ProductResponse'
  *       404:
  *         description: Product not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/:id", productController.getProductById);
 
@@ -144,38 +147,41 @@ router.get("/:id", productController.getProductById);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UpdateProductRequest'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               categories_id:
+ *                 type: integer
+ *               stock:
+ *                 type: integer
+ *               description:
+ *                 type: string
+ *               sku:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *               is_active:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Product updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ProductResponse'
  *       400:
  *         description: Validation or request error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Product not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put(
   "/:id",
   authenticate,
+  uploadProductImage.single("image"),
   validateRequest(updateProductSchema),
   productController.updateProduct
 );
@@ -199,22 +205,10 @@ router.put(
  *     responses:
  *       200:
  *         description: Product deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
  *       404:
  *         description: Product not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.delete("/:id", authenticate, productController.deleteProduct);
 

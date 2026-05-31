@@ -1,0 +1,26 @@
+export const CART_MESSAGES = {
+  CART: {
+    ITEM_ADDED: "Item added to cart successfully",
+    ITEM_UPDATED: "Cart item updated successfully",
+    ITEM_REMOVED: "Item removed from cart successfully",
+    CART_FETCHED: "Cart fetched successfully",
+    CART_EMPTY: "Your cart is empty",
+    ADD_FAILED: "Failed to add item to cart",
+    UPDATE_FAILED: "Failed to update cart item",
+    REMOVE_FAILED: "Failed to remove cart item",
+    FETCH_FAILED: "Failed to fetch cart",
+    PRODUCT_NOT_FOUND: "Product not found",
+    PRODUCT_INACTIVE: "Product is not available",
+    INSUFFICIENT_STOCK: "Insufficient stock available",
+    CART_ITEM_NOT_FOUND: "Cart item not found",
+    NOT_YOUR_CART_ITEM: "This cart item does not belong to you",
+  },
+  CHECKOUT: {
+    SUCCESS: "Order placed successfully",
+    FAILED: "Failed to place order",
+    CART_EMPTY: "Cannot checkout with an empty cart",
+    ADDRESS_NOT_FOUND: "Address not found",
+    ADDRESS_NOT_YOURS: "This address does not belong to you",
+    INVALID_PAYMENT_METHOD: "Invalid payment method",
+  },
+};

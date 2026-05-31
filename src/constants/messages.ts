@@ -16,9 +16,9 @@ export const MESSAGES = {
         USER_ALREADY_ACTIVE: "User already verified and active",
         EMAIL_VERIFIED_ALREADY: "Email is already verified",
         INVALID_EMAIL: "Invalid email format",
-        INVALID_PASSWORD: "Password must be at least 8 charecters and contain uppercase letters and numbers",
+        INVALID_PASSWORD: "Password must be at least 8 characters and contain uppercase letters and numbers",
 
-        VALIDATION_FAILED: "Validatin failed",
+        VALIDATION_FAILED: "Validation failed",
         INTERNAL_ERROR: "Internal server error",
         RESEND_OTP_FAILED: "Failed to resend OTP",
         INVALID_CREDENTIALS: "The email or password you entered is incorrect.",
@@ -28,9 +28,8 @@ export const MESSAGES = {
         LOGOUT_FAILED: "Logout failed",
         FORGOT_PASSWORD_OTP_SENT: "OTP has been  sent to  your registered email. Valid for 5 minutes.",
         PASSWORD_RESET_SUCCESS: "Your password has been reset successfully.",
-        PASSWORD_SUCCESS_FAILED: "Password reset failed. Please try again.",
         OLD_PASSWORD_INCORRECT: "Old password is incorrect.",
-        PASSWORD_RESET_FAILED: " Password reset failed."
+        PASSWORD_RESET_FAILED: "Password reset failed."
     },
 
     VALIDATION: {

@@ -14,6 +14,7 @@ export const createProductSchema = Joi.object({
   stock: Joi.number()
   .min(0)
   .default(0),
+  description: Joi.string().max(1000).optional().allow("", null),
   sku: Joi.string()
   .max(50)
   .optional()
@@ -28,6 +29,7 @@ export const updateProductSchema = Joi.object({
   price: Joi.number().positive().optional(),
   categories_id: Joi.number().optional(),
   stock: Joi.number().min(0).optional(),
+  description: Joi.string().max(1000).optional().allow("", null),
   sku: Joi.string().max(50).optional().allow(null, ""),
   is_active: Joi.boolean().optional(),
 }).min(1);

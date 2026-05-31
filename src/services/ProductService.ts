@@ -1,6 +1,7 @@
 import * as ProductRepository from "../repositories/ProductRepository";
 import { PRODUCT_MESSAGES } from "../constants/productMessages";
 import logger from "../config/logger";
+import { logError } from "../middlewares/logger";
 import type {
   ICreateProductRequest,
   IUpdateProductRequest,
@@ -13,68 +14,9 @@ import { Product } from "../entities/ProductEntity";
 export const createProduct = async (
   productData: ICreateProductRequest
 ): Promise<IProductServiceResponse<IProductResponse>> => {
-
-  // Check if store exists
-  const storeExist = await ProductRepository.storeExists(productData.store_id);
-  if (!storeExist) {
-    return {
-      success: false,
-      message: PRODUCT_MESSAGES.PRODUCT.STORE_NOT_FOUND,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  // Check if category exists
-  const categoryExist = await ProductRepository.categoryExists(productData.categories_id);
-  if (!categoryExist) {
-    return {
-      success: false,
-      message: PRODUCT_MESSAGES.PRODUCT.CATEGORY_NOT_FOUND,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  // Check SKU uniqueness
-  if (productData.sku) {
-    const skuExist = await ProductRepository.skuExists(productData.sku);
-    if (skuExist) {
-      return {
-        success: false,
-        message: PRODUCT_MESSAGES.PRODUCT.ALREADY_EXISTS,
-        timestamp: new Date().toISOString(),
-      };
-    }
-  }
-
-  logger.info(`Creating product for store ${productData.store_id} and category ${productData.categories_id}`);
-  const newProduct = await ProductRepository.createProduct(productData);
-
-  return {
-    success: true,
-    message: PRODUCT_MESSAGES.PRODUCT.CREATION_SUCCESS,
-    data: mapToResponse(newProduct),
-    timestamp: new Date().toISOString(),
-  };
-};
-
-// UPDATE PRODUCT 
-export const updateProduct = async (
-  id: number,
-  updateData: IUpdateProductRequest
-): Promise<IProductServiceResponse<IProductResponse>> => {
-
-  const existing = await ProductRepository.findProductById(id);
-  if (!existing) {
-    return {
-      success: false,
-      message: PRODUCT_MESSAGES.PRODUCT.NOT_FOUND,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  // Validate store if provided
-  if (updateData.store_id) {
-    const storeExist = await ProductRepository.storeExists(updateData.store_id);
+  try {
+    // Check if store exists
+    const storeExist = await ProductRepository.storeExists(productData.store_id);
     if (!storeExist) {
       return {
         success: false,
@@ -82,11 +24,9 @@ export const updateProduct = async (
         timestamp: new Date().toISOString(),
       };
     }
-  }
 
-  // Validate category if provided
-  if (updateData.categories_id) {
-    const categoryExist = await ProductRepository.categoryExists(updateData.categories_id);
+    // Check if category exists
+    const categoryExist = await ProductRepository.categoryExists(productData.categories_id);
     if (!categoryExist) {
       return {
         success: false,
@@ -94,50 +34,145 @@ export const updateProduct = async (
         timestamp: new Date().toISOString(),
       };
     }
-  }
 
-  // Check SKU uniqueness
-  if (updateData.sku) {
-    const skuExist = await ProductRepository.skuExists(updateData.sku, id);
-    if (skuExist) {
+    // Check SKU uniqueness
+    if (productData.sku) {
+      const skuExist = await ProductRepository.skuExists(productData.sku);
+      if (skuExist) {
+        return {
+          success: false,
+          message: PRODUCT_MESSAGES.PRODUCT.ALREADY_EXISTS,
+          timestamp: new Date().toISOString(),
+        };
+      }
+    }
+
+    logger.info(`Creating product for store ${productData.store_id} and category ${productData.categories_id}`);
+    const newProduct = await ProductRepository.createProduct(productData);
+
+    return {
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT.CREATION_SUCCESS,
+      data: mapToResponse(newProduct),
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "ProductService.createProduct",
+      body: productData,
+    });
+    return {
+      success: false,
+      message: PRODUCT_MESSAGES.PRODUCT.CREATION_FAILED,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
+// UPDATE PRODUCT 
+export const updateProduct = async (
+  id: number,
+  updateData: IUpdateProductRequest
+): Promise<IProductServiceResponse<IProductResponse>> => {
+  try {
+    const existing = await ProductRepository.findProductById(id);
+    if (!existing) {
       return {
         success: false,
-        message: PRODUCT_MESSAGES.PRODUCT.ALREADY_EXISTS,
+        message: PRODUCT_MESSAGES.PRODUCT.NOT_FOUND,
         timestamp: new Date().toISOString(),
       };
     }
+
+    // Validate store if provided
+    if (updateData.store_id) {
+      const storeExist = await ProductRepository.storeExists(updateData.store_id);
+      if (!storeExist) {
+        return {
+          success: false,
+          message: PRODUCT_MESSAGES.PRODUCT.STORE_NOT_FOUND,
+          timestamp: new Date().toISOString(),
+        };
+      }
+    }
+
+    // Validate category if provided
+    if (updateData.categories_id) {
+      const categoryExist = await ProductRepository.categoryExists(updateData.categories_id);
+      if (!categoryExist) {
+        return {
+          success: false,
+          message: PRODUCT_MESSAGES.PRODUCT.CATEGORY_NOT_FOUND,
+          timestamp: new Date().toISOString(),
+        };
+      }
+    }
+
+    // Check SKU uniqueness
+    if (updateData.sku) {
+      const skuExist = await ProductRepository.skuExists(updateData.sku, id);
+      if (skuExist) {
+        return {
+          success: false,
+          message: PRODUCT_MESSAGES.PRODUCT.ALREADY_EXISTS,
+          timestamp: new Date().toISOString(),
+        };
+      }
+    }
+
+    await ProductRepository.updateProduct(id, updateData);
+    const updated = await ProductRepository.findProductById(id);
+
+    logger.info(`Updated product ${id} successfully`);
+    return {
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT.UPDATE_SUCCESS,
+      data: mapToResponse(updated!),
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "ProductService.updateProduct",
+      body: { id, ...updateData },
+    });
+    return {
+      success: false,
+      message: PRODUCT_MESSAGES.PRODUCT.UPDATE_FAILED,
+      timestamp: new Date().toISOString(),
+    };
   }
-
-  await ProductRepository.updateProduct(id, updateData);
-  const updated = await ProductRepository.findProductById(id);
-
-  logger.info(`Updated product ${id} successfully`);
-  return {
-    success: true,
-    message: PRODUCT_MESSAGES.PRODUCT.UPDATE_SUCCESS,
-    data: mapToResponse(updated!),
-    timestamp: new Date().toISOString(),
-  };
 };
 
 // GET  PRODUCT BY ID
 export const getProductById = async (id: number): Promise<IProductServiceResponse<IProductResponse>> => {
-  const product = await ProductRepository.findProductById(id);
+  try {
+    const product = await ProductRepository.findProductById(id);
 
-  if (!product) {
+    if (!product) {
+      return {
+        success: false,
+        message: PRODUCT_MESSAGES.PRODUCT.NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    return {
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT.FETCH_SUCCESS,
+      data: mapToResponse(product),
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "ProductService.getProductById",
+      body: { id },
+    });
     return {
       success: false,
-      message: PRODUCT_MESSAGES.PRODUCT.NOT_FOUND,
+      message: PRODUCT_MESSAGES.PRODUCT.FETCH_FAILED,
       timestamp: new Date().toISOString(),
     };
   }
-
-  return {
-    success: true,
-    message: PRODUCT_MESSAGES.PRODUCT.FETCH_SUCCESS,
-    data: mapToResponse(product),
-    timestamp: new Date().toISOString(),
-  };
 };
 
 //  GET ALL PRODUCT
@@ -145,45 +180,69 @@ export const getAllProducts = async (
   page: number = 1,
   limit: number = 10
 ): Promise<IProductServiceResponse<any>> => {
-  const skip = (page - 1) * limit;
+  try {
+    const skip = (page - 1) * limit;
 
-  const [products, total] = await ProductRepository.findAllProductsWithPagination(skip, limit);
+    const [products, total] = await ProductRepository.findAllProductsWithPagination(skip, limit);
 
-  return {
-    success: true,
-    message: PRODUCT_MESSAGES.PRODUCT.FETCH_SUCCESS,
-    data: {
-      products: products.map(mapToResponse),
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+    return {
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT.FETCH_SUCCESS,
+      data: {
+        products: products.map(mapToResponse),
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
       },
-    },
-    timestamp: new Date().toISOString(),
-  };
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "ProductService.getAllProducts",
+      body: { page, limit },
+    });
+    return {
+      success: false,
+      message: PRODUCT_MESSAGES.PRODUCT.FETCH_FAILED,
+      timestamp: new Date().toISOString(),
+    };
+  }
 };
 
 //  DELETE PRODUCT
 export const deleteProduct = async (id: number): Promise<IProductServiceResponse> => {
-  const existing = await ProductRepository.findProductById(id);
+  try {
+    const existing = await ProductRepository.findProductById(id);
 
-  if (!existing) {
+    if (!existing) {
+      return {
+        success: false,
+        message: PRODUCT_MESSAGES.PRODUCT.NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    await ProductRepository.deleteProduct(id);
+
+    return {
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT.DELETE_SUCCESS,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "ProductService.deleteProduct",
+      body: { id },
+    });
     return {
       success: false,
-      message: PRODUCT_MESSAGES.PRODUCT.NOT_FOUND,
+      message: PRODUCT_MESSAGES.PRODUCT.DELETE_FAILED,
       timestamp: new Date().toISOString(),
     };
   }
-
-  await ProductRepository.deleteProduct(id);
-
-  return {
-    success: true,
-    message: PRODUCT_MESSAGES.PRODUCT.DELETE_SUCCESS,
-    timestamp: new Date().toISOString(),
-  };
 };
 
 //  PRODUCT RESPONSE HELPER 
@@ -195,6 +254,8 @@ function mapToResponse(product: Product): IProductResponse {
     price: product.price,
     categories_id: product.categories_id,
     stock: product.stock,
+    description: product.description || null,
+    image: product.image || null,
     sku: product.sku,
     is_active: product.is_active,
     created_at: product.created_at,

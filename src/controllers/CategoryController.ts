@@ -131,7 +131,7 @@ export const updateCategory = async (
         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: CATEGORY_MESSAGES.CATEGORY.UPDATE_FAILED,
-            timestamp: new Date().toDateString(),
+            timestamp: new Date().toISOString(),
         });
     }
 };

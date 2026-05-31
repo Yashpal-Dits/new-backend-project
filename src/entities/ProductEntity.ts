@@ -33,6 +33,12 @@ export class Product {
   @Column({ type: "int", default: 0 })
   stock: number;
 
+  @Column({ type: "text", nullable: true })
+  description: string;
+
+  @Column({ type: "varchar", nullable: true })
+  image: string;
+
   @Column({ type: "varchar", nullable: true })
   sku: string;
 

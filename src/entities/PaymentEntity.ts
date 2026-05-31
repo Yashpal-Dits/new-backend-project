@@ -29,7 +29,7 @@ export class Payment {
   @Column({ type: "int", unique: true })
   order_id: number;
 
-  @Column({ type: "decimal", precision: 10, scale: 2 })
+  @Column({ type: "int", precision: 10, scale: 2 })
   payment_method_id: number;
 
   @Column({

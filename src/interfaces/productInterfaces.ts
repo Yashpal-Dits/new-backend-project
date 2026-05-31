@@ -5,6 +5,8 @@ export interface ICreateProductRequest {
   price: number;
   categories_id: number;
   stock?: number;
+  description?: string;
+  image?: string;
   sku?: string;
   is_active?: boolean;
 }
@@ -14,6 +16,8 @@ export interface IUpdateProductRequest {
   price?: number;
   categories_id?: number;
   stock?: number;
+  description?: string;
+  image?: string;
   sku?: string;
   is_active?: boolean;
   store_id?: number;
@@ -27,6 +31,8 @@ export interface IProductResponse {
   price: number;
   categories_id: number;
   stock: number;
+  description: string | null;
+  image: string | null;
   sku: string | null;
   is_active: boolean;
   created_at: Date;

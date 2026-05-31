@@ -12,6 +12,12 @@ import type {
 export const createProduct = async (req: Request, res: Response): Promise<Response> => {
   try {
     const productData: ICreateProductRequest = req.body;
+
+    // Attach uploaded image filename if present
+    if (req.file) {
+      productData.image = req.file.filename;
+    }
+
     logger.info(`Creating product: ${productData.name}`);
 
     const result = await ProductService.createProduct(productData);
@@ -76,6 +82,12 @@ export const updateProduct = async (req: Request, res: Response): Promise<Respon
   try {
     const { id } = req.params;
     const updateData: IUpdateProductRequest = req.body;
+
+    // Attach uploaded image filename if present
+    if (req.file) {
+      updateData.image = req.file.filename;
+    }
+
     logger.info(`Updating product with ID: ${id}`);
 
     const result = await ProductService.updateProduct(Number(id), updateData);
