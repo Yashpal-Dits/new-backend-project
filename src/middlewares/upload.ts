@@ -4,7 +4,6 @@ import fs from "fs";
 
 const uploadDir = path.join(process.cwd(), "public", "uploads", "products");
 
-// Ensure directory exists
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -36,7 +35,7 @@ const fileFilter = (
 export const uploadProductImage = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  limits: { fileSize: 5 * 1024 * 1024 }, 
 });
 
 export const getImageUrl = (filename: string | null | undefined): string | null => {

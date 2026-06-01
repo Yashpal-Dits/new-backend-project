@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import dotenv from "dotenv";
 import { AppDataSource } from "./config/dataSource";
 import routes from "./routes/index";
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "..", "public")));
 app.use(requestLogger);
 
 app.use(
@@ -59,7 +61,7 @@ const start = async () => {
       logger.info(` Server running on port ${PORT}/api-docs`);
     });
   } catch (error) {
-    logError(error as Error, { endpoint: "Databse Initialization" });
+    logError(error as Error, { endpoint: "Database Initialization" });
     process.exit(1);
   }
 };

@@ -6,7 +6,7 @@ const options = {
     info: {
       title: "Ecommerce Backend API Documentation",
       version: "1.0.0",
-      description: "User Registration, Categories & Products APIs",
+      description: "Ecommerce Backend API - Auth, Categories, Products, Stores, Cart & Checkout",
     },
     servers: [
       {
@@ -25,7 +25,7 @@ const options = {
         },
       },
       schemas: {
-        //      AUTH SCHEMAS
+        // ==================== AUTH SCHEMAS ====================
         RegisterRequest: {
           type: "object",
           required: ["first_name", "last_name", "email", "password"],
@@ -116,8 +116,129 @@ const options = {
           properties: {},
           example: {},
         },
+        // ---- Auth Response Schemas ----
+        RegisterResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Registration started. OTP sent to your email." },
+            data: {
+              type: "object",
+              properties: {
+                userId: { type: "number", example: 1 },
+                email: { type: "string", example: "yash@example.com" },
+                status: { type: "string", example: "pending_verification" },
+              },
+            },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        VerifyOTPResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Email verified successfully. Your account is now active." },
+            data: {
+              type: "object",
+              properties: {
+                userId: { type: "number", example: 1 },
+                email: { type: "string", example: "yash@example.com" },
+                isActive: { type: "boolean", example: true },
+                verified: { type: "boolean", example: true },
+                role: { type: "string", example: "customer" },
+              },
+            },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        LoginRequest: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: { type: "string", format: "email", example: "yash@example.com" },
+            password: { type: "string", format: "password", example: "SecurePass123" },
+          },
+        },
+        LoginResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Login successful." },
+            data: {
+              type: "object",
+              properties: {
+                token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", description: "JWT Bearer Token" },
+                user: {
+                  type: "object",
+                  properties: {
+                    id: { type: "number", example: 1 },
+                    first_name: { type: "string", example: "John" },
+                    last_name: { type: "string", example: "Doe" },
+                    email: { type: "string", example: "yash@example.com" },
+                    role: { type: "string", example: "customer" },
+                  },
+                },
+              },
+            },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        ForgotPasswordResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "OTP has been sent to your registered email." },
+            data: {
+              type: "object",
+              properties: {
+                email: { type: "string", example: "yash@gmail.com" },
+                message: { type: "string", example: "An OTP has been sent to your email. Use it to reset your password." },
+              },
+            },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        ResetPasswordResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Your password has been reset successfully." },
+            data: {
+              type: "object",
+              properties: {
+                email: { type: "string", example: "john@example.com" },
+                message: { type: "string", example: "Your password has been reset successfully." },
+              },
+            },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        ChangePasswordResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Your password has been reset successfully." },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        LogoutResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "You have been logged out successfully." },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
 
-        //                          CATEGORY SCHEMAS
+        // ==================== CATEGORY SCHEMAS ====================
+        Category: {
+          type: "object",
+          properties: {
+            id: { type: "integer", example: 2 },
+            name: { type: "string", example: "Electronics" },
+            description: { type: "string", nullable: true, example: "All electronic items" },
+          },
+        },
         CreateCategoryRequest: {
           type: "object",
           required: ["name"],
@@ -147,10 +268,7 @@ const options = {
           properties: {
             success: { type: "boolean", example: true },
             message: { type: "string", example: "Categories fetched successfully" },
-            data: {
-              type: "array",
-              items: { $ref: "#/components/schemas/Category" },
-            },
+            data: { type: "array", items: { $ref: "#/components/schemas/Category" } },
             timestamp: { type: "string", format: "date-time" },
           },
         },
@@ -164,32 +282,7 @@ const options = {
           },
         },
 
-        //               PRODUCT SCHEMAS       
-        Product: {
-          type: "object",
-          properties: {
-            id: { type: "integer", example: 1 },
-            store_id: { type: "integer", example: 1 },
-            name: { type: "string", example: "Wireless Headphones" },
-            price: { type: "number", example: 2999.99 },
-            categories_id: { type: "integer", example: 2 },
-            stock: { type: "integer", example: 50 },
-            description: { type: "string", nullable: true, example: "High quality wireless headphones with noise cancellation" },
-            image: { type: "string", nullable: true, example: "/uploads/products/product-123456789.jpg" },
-            sku: { type: "string", nullable: true, example: "WH-001" },
-            is_active: { type: "boolean", example: true },
-            created_at: { type: "string", format: "date-time" },
-            updated_at: { type: "string", format: "date-time" },
-          },
-        },
-        Category: {
-          type: "object",
-          properties: {
-            id: { type: "integer", example: 2 },
-            name: { type: "string", example: "Electronics" },
-            description: { type: "string", nullable: true, example: "All electronic items" },
-          },
-        },
+        // ==================== STORE SCHEMAS ====================
         Store: {
           type: "object",
           properties: {
@@ -238,11 +331,27 @@ const options = {
           properties: {
             success: { type: "boolean", example: true },
             message: { type: "string", example: "Stores fetched successfully" },
-            data: {
-              type: "array",
-              items: { $ref: "#/components/schemas/Store" },
-            },
+            data: { type: "array", items: { $ref: "#/components/schemas/Store" } },
             timestamp: { type: "string", format: "date-time" },
+          },
+        },
+
+        // ==================== PRODUCT SCHEMAS ====================
+        Product: {
+          type: "object",
+          properties: {
+            id: { type: "integer", example: 1 },
+            store_id: { type: "integer", example: 1 },
+            name: { type: "string", example: "Wireless Headphones" },
+            price: { type: "number", example: 2999.99 },
+            categories_id: { type: "integer", example: 2 },
+            stock: { type: "integer", example: 50 },
+            description: { type: "string", nullable: true, example: "High quality wireless headphones" },
+            image: { type: "string", nullable: true, example: "product-1712345678.jpg" },
+            sku: { type: "string", nullable: true, example: "WH-001" },
+            is_active: { type: "boolean", example: true },
+            created_at: { type: "string", format: "date-time" },
+            updated_at: { type: "string", format: "date-time" },
           },
         },
         CreateProductRequest: {
@@ -256,7 +365,7 @@ const options = {
             stock: { type: "integer", example: 50, default: 0 },
             description: { type: "string", nullable: true, example: "High quality wireless headphones" },
             sku: { type: "string", nullable: true, example: "WH-001" },
-            image: { type: "string", format: "binary", description: "Product image file (JPEG, PNG, WebP, GIF up to 5MB)" },
+            image: { type: "string", format: "binary", description: "Product image (JPEG, PNG, WebP, GIF up to 5MB)" },
             is_active: { type: "boolean", example: true, default: true },
           },
         },
@@ -270,7 +379,7 @@ const options = {
             stock: { type: "integer", example: 45 },
             description: { type: "string", nullable: true, example: "Updated description" },
             sku: { type: "string", nullable: true, example: "WH-001" },
-            image: { type: "string", format: "binary", description: "Product image file (JPEG, PNG, WebP, GIF up to 5MB)" },
+            image: { type: "string", format: "binary", description: "Product image (JPEG, PNG, WebP, GIF up to 5MB)" },
             is_active: { type: "boolean", example: true },
           },
         },
@@ -291,10 +400,7 @@ const options = {
             data: {
               type: "object",
               properties: {
-                products: {
-                  type: "array",
-                  items: { $ref: "#/components/schemas/Product" },
-                },
+                products: { type: "array", items: { $ref: "#/components/schemas/Product" } },
                 pagination: {
                   type: "object",
                   properties: {
@@ -310,7 +416,87 @@ const options = {
           },
         },
 
-        //                     COMMON RESPONSES
+        // ==================== CART SCHEMAS ====================
+        CartItem: {
+          type: "object",
+          properties: {
+            id: { type: "integer", example: 1 },
+            product_id: { type: "integer", example: 1 },
+            product_name: { type: "string", example: "Wireless Headphones" },
+            product_price: { type: "number", example: 2999.99 },
+            quantity: { type: "integer", example: 2 },
+            total: { type: "number", example: 5999.98 },
+          },
+        },
+        Cart: {
+          type: "object",
+          properties: {
+            id: { type: "integer", example: 1 },
+            user_id: { type: "integer", example: 1 },
+            status: { type: "string", example: "active" },
+            items: { type: "array", items: { $ref: "#/components/schemas/CartItem" } },
+            total_items: { type: "integer", example: 3 },
+            total_price: { type: "number", example: 8999.97 },
+          },
+        },
+        AddToCartRequest: {
+          type: "object",
+          required: ["product_id", "quantity"],
+          properties: {
+            product_id: { type: "integer", example: 1 },
+            quantity: { type: "integer", example: 2, minimum: 1 },
+          },
+        },
+        UpdateCartItemRequest: {
+          type: "object",
+          required: ["quantity"],
+          properties: {
+            quantity: { type: "integer", example: 3, minimum: 1 },
+          },
+        },
+        CartResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Cart fetched successfully" },
+            data: { $ref: "#/components/schemas/Cart" },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+
+        // ==================== CHECKOUT SCHEMAS ====================
+        CheckoutRequest: {
+          type: "object",
+          required: ["address_id", "payment_method"],
+          properties: {
+            address_id: { type: "integer", example: 1 },
+            payment_method: {
+              type: "string",
+              enum: ["card", "upi", "cod", "paypal"],
+              example: "upi",
+            },
+          },
+        },
+        CheckoutData: {
+          type: "object",
+          properties: {
+            order_id: { type: "integer", example: 1 },
+            total_price: { type: "number", example: 5999.98 },
+            status: { type: "string", example: "pending" },
+            payment_status: { type: "string", example: "pending" },
+          },
+        },
+        CheckoutResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Order placed successfully" },
+            data: { $ref: "#/components/schemas/CheckoutData" },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+
+        // ==================== COMMON RESPONSES ====================
         SuccessResponse: {
           type: "object",
           properties: {
@@ -325,42 +511,6 @@ const options = {
             success: { type: "boolean", example: false },
             message: { type: "string", example: "Error message" },
             timestamp: { type: "string", format: "date-time", example: "2024-01-15T10:30:45.123Z" },
-          },
-        },
-
-        //                    AUTH RESPONSE SCHEMAS 
-        RegisterResponse: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: true },
-            message: { type: "string", example: "Registration started. OTP sent to your email." },
-            data: {
-              type: "object",
-              properties: {
-                userId: { type: "number", example: 1 },
-                email: { type: "string", example: "yash@example.com" },
-                status: { type: "string", example: "pending_verification" },
-              },
-            },
-            timestamp: { type: "string", format: "date-time" },
-          },
-        },
-        VerifyOTPResponse: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: true },
-            message: { type: "string", example: "Email verified successfully. Your account is now active." },
-            data: {
-              type: "object",
-              properties: {
-                userId: { type: "number", example: 1 },
-                email: { type: "string", example: "yash@example.com" },
-                isActive: { type: "boolean", example: true },
-                verified: { type: "boolean", example: true },
-                role: { type: "string", example: "customer" },
-              },
-            },
-            timestamp: { type: "string", format: "date-time" },
           },
         },
         ValidationError: {
@@ -381,94 +531,12 @@ const options = {
             timestamp: { type: "string", format: "date-time" },
           },
         },
-        LoginRequest: {
-          type: "object",
-          required: ["email", "password"],
-          properties: {
-            email: { type: "string", format: "email", example: "yash@example.com" },
-            password: { type: "string", format: "password", example: "SecurePass123" },
-          },
-        },
-        LoginResponse: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: true },
-            message: { type: "string", example: "Login successful." },
-            data: {
-              type: "object",
-              properties: {
-                token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", description: "JWT Bearer Token for authentication" },
-                user: {
-                  type: "object",
-                  properties: {
-                    id: { type: "number", example: 1 },
-                    first_name: { type: "string", example: "John" },
-                    last_name: { type: "string", example: "Doe" },
-                    email: { type: "string", example: "yash@example.com" },
-                    role: { type: "string", example: "customer" },
-                  },
-                },
-              },
-            },
-            timestamp: { type: "string", format: "date-time" },
-          },
-        },
-        ForgotPasswordResponse: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: true },
-            message: { type: "string", example: " OTP has been sent to your registered email. valid for 10 minutes." },
-            data: {
-              type: "object",
-              properties: {
-                email: { type: "string", example: "yash@gmail.com" },
-                message: { type: "string", example: "An OTP has been sent to your email. Use it to reset your password." },
-              },
-            },
-            timestamp: { type: "string", format: "date-time" },
-          },
-        },
-        ResetPasswordResponse: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: true },
-            message: { type: "string", example: "Your password has been reset successfully." },
-            data: {
-              type: "object",
-              properties: {
-                email: { type: "string", example: "john@example.com" },
-                message: { type: "string", example: "Your password has been reset successfully." },
-              },
-            },
-            timestamp: { type: "string", format: "date-time" },
-          },
-        },
-        ChangePasswordResponse: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: true },
-            message: { type: "string", example: "Your password has been reset successfully." },
-            timestamp: { type: "string", format: "date-time" },
-          },
-        },
-        LogoutResponse: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: true },
-            message: { type: "string", example: "You have been logged out successfully." },
-            timestamp: { type: "string", format: "date-time" },
-          },
-        },
         ValidationErrorResponse: {
           type: "object",
           properties: {
             success: { type: "boolean", example: false },
             message: { type: "string", example: "Validation failed" },
-            errors: {
-              type: "array",
-              items: { type: "string" },
-              example: ["Email is required", "Password must contain uppercase letter"],
-            },
+            errors: { type: "array", items: { type: "string" }, example: ["Email is required"] },
             timestamp: { type: "string", format: "date-time" },
           },
         },

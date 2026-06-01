@@ -1,12 +1,5 @@
 import * as cartRepo from "../repositories/CartRepository";
 import { CART_MESSAGES } from "../constants/cartMessages";
-import { AppDataSource } from "../config/dataSource";
-import { Order, OrderStatus } from "../entities/OrderEntity";
-import { OrderItem } from "../entities/OrderItemEntity";
-import { Payment, PaymentMethod, PaymentStatus } from "../entities/PaymentEntity";
-import { Cart, CartStatus } from "../entities/CartEntity";
-import { Product } from "../entities/ProductEntity";
-import { Address } from "../entities/AddressEntity";
 import logger from "../config/logger";
 import { logError } from "../middlewares/logger";
 import type {
@@ -15,13 +8,259 @@ import type {
   ICartServiceResponse,
   ICartResponse,
   ICartItemResponse,
-  ICheckoutRequest,
-  ICheckoutResponse,
+  
 } from "../interfaces/cartInterfaces";
 
-const mapCartToResponse = (cart: any): ICartItemResponse => {
-    const items: ICartItemResponse[] = (cart.items || [].map(item:any) => ({
-        id: item.id,
+// ----MAP CART TO RESPONSE ---
 
-    }))
+const mapCartToResponse = (cart: any): ICartResponse => {
+  const items: ICartItemResponse[] = (cart.items || []).map((item: any) => ({
+    id: item.id,
+    product_id: item.product_id,
+    product_name: item.product?.name || "Unknown",
+    product_price: Number(item.price),
+    quantity: item.quantity,
+    total: Number(item.price) * item.quantity,
+  }));
+
+  return {
+    id: cart.id,
+    user_id: cart.user_id,
+    status: cart.status,
+    items,
+    total_items: items.reduce((sum, i) => sum + i.quantity, 0),
+    total_price: items.reduce((sum, i) => sum + i.total, 0),
+  };
+};
+
+//----ADD  TO CART---
+
+export const addToCart = async (
+    userId: number,
+    data: IAddToCartRequest
+): Promise<ICartServiceResponse<ICartResponse>> => {
+    try {
+        const product = await cartRepo.findProductById(data.product_id);
+        if(!product) {
+            return {
+                success: false,
+                message: CART_MESSAGES.CART.PRODUCT_NOT_FOUND,
+                timestamp: new Date().toISOString(),
+            };
+        }
+        if(!product.is_active) {
+            return{
+                success: false,
+                message: CART_MESSAGES.CART.PRODUCT_INACTIVE,
+                timestamp: new Date().toISOString(),
+            };
+        }
+        if(product.stock < data.quantity) {
+            return {
+                success: false,
+                message: CART_MESSAGES.CART.INSUFFICIENT_STOCK,
+                timestamp: new Date().toISOString(),
+            };
+        }
+        
+        // -----CREATE OR FIND CART---
+
+        let cart = await cartRepo.findActiveCartByUserId(userId);
+        if(!cart) {
+            cart = await cartRepo.createCart(userId);
+        }
+        const existingItem  = await cartRepo.findCartItemByProduct(cart.id, data.product_id);
+        if(existingItem) {
+            const newQty = existingItem.quantity + data.quantity;
+            if(product.stock < newQty) {
+                return {
+                    success: false,
+                    message: CART_MESSAGES.CART.INSUFFICIENT_STOCK,
+                    timestamp: new Date().toISOString(),
+                };
+            }
+            await cartRepo.updateCartItemQuantity(existingItem.id, newQty);
+            logger.info(`Updated cart item ${existingItem.id} quantity to ${newQty}`);
+        } else {
+            await cartRepo.createCartItem(cart.id, data.product_id, data.quantity, Number(product.price));
+            logger.info(`Added product ${data.product_id} to cart${cart.id}`);
+        
+        }
+
+        //----RETURN UPDATED CART-----
+
+        const updatedCart = await cartRepo.getCartWithItems(cart.id);
+        return {
+            success: true,
+            message : CART_MESSAGES.CART.ITEM_ADDED,
+            data: updatedCart? mapCartToResponse(updatedCart) : undefined,
+            timestamp: new Date().toISOString(),
+        };
+
+
+    } catch (error) {
+logError(error as Error, {
+    endpoint: "CartService.addToCart",
+    body: {userId, ...data},
+});
+return {
+    success: false,
+    message: CART_MESSAGES.CART.ADD_FAILED,
+    timestamp: new Date().toISOString(),
+};        
+    }
+};
+
+//----- GET CART----
+
+export  const getCart = async (userId : number): Promise<ICartServiceResponse<ICartResponse>> =>{
+    try {
+        const cart = await cartRepo.findActiveCartByUserId(userId);
+        if(!cart || !cart.items || cart.items.length === 0 ){
+            return {
+                success: false,
+                message: CART_MESSAGES.CART.CART_EMPTY,
+                data: {
+                      id: 0,
+                      user_id: userId,
+                      status:"active",
+                      items: [],
+                      total_items: 0,
+                      total_price:0,
+                },
+                timestamp:new Date().toISOString(),
+            };
+        }
+        return {
+            success: true,
+            message: CART_MESSAGES.CART.CART_FETCHED,
+            data: mapCartToResponse(cart),
+            timestamp: new Date().toISOString(),
+        }
+    } catch (error) {
+        logError(error as Error, {
+            endpoint:"CartService.getCart",
+            body : {userId}
+        });
+        return {
+      success: false,
+      message: CART_MESSAGES.CART.FETCH_FAILED,
+      timestamp: new Date().toISOString(),
+    };
+    }
 }
+
+//---- UPDATE CART ITEMS----
+export const updateCartItem = async (
+  userId: number,
+  itemId: number,
+  data: IUpdateCartItemRequest
+): Promise<ICartServiceResponse<ICartResponse>> => {
+  try {
+    const cartItem = await cartRepo.findCartItemById(itemId);
+    if (!cartItem) {
+      return {
+        success: false,
+        message: CART_MESSAGES.CART.CART_ITEM_NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Verify this cart item belongs to this user
+    const cart = await cartRepo.getCartWithItems(cartItem.cart_id);
+    if (!cart || cart.user_id !== userId) {
+      return {
+        success: false,
+        message: CART_MESSAGES.CART.NOT_YOUR_CART_ITEM,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Validate stock
+    const product = await cartRepo.findProductById(cartItem.product_id);
+    if (product && product.stock < data.quantity) {
+      return {
+        success: false,
+        message: CART_MESSAGES.CART.INSUFFICIENT_STOCK,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    await cartRepo.updateCartItemQuantity(itemId, data.quantity);
+    logger.info(`Updated cart item ${itemId} quantity to ${data.quantity}`);
+
+    const updatedCart = await cartRepo.getCartWithItems(cart.id);
+    return {
+      success: true,
+      message: CART_MESSAGES.CART.ITEM_UPDATED,
+      data: updatedCart ? mapCartToResponse(updatedCart) : undefined,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "CartService.updateCartItem",
+      body: { userId, itemId, ...data },
+    });
+    return {
+      success: false,
+      message: CART_MESSAGES.CART.UPDATE_FAILED,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
+// ─── Remove Cart Item ────────────
+
+export const removeCartItem = async (
+  userId: number,
+  itemId: number
+): Promise<ICartServiceResponse<ICartResponse>> => {
+  try {
+    const cartItem = await cartRepo.findCartItemById(itemId);
+    if (!cartItem) {
+      return {
+        success: false,
+        message: CART_MESSAGES.CART.CART_ITEM_NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    const cart = await cartRepo.getCartWithItems(cartItem.cart_id);
+    if (!cart || cart.user_id !== userId) {
+      return {
+        success: false,
+        message: CART_MESSAGES.CART.NOT_YOUR_CART_ITEM,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    await cartRepo.deleteCartItem(itemId);
+    logger.info(`Removed cart item ${itemId}`);
+
+    const updatedCart = await cartRepo.getCartWithItems(cart.id);
+    return {
+      success: true,
+      message: CART_MESSAGES.CART.ITEM_REMOVED,
+      data: updatedCart ? mapCartToResponse(updatedCart) : {
+        id: cart.id,
+        user_id: userId,
+        status: "active",
+        items: [],
+        total_items: 0,
+        total_price: 0,
+      },
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, {
+      endpoint: "CartService.removeCartItem",
+      body: { userId, itemId },
+    });
+    return {
+      success: false,
+      message: CART_MESSAGES.CART.REMOVE_FAILED,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
