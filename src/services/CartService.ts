@@ -9,6 +9,7 @@ import type {
   ICartResponse,
   ICartItemResponse,
   
+  
 } from "../interfaces/cartInterfaces";
 
 // ----MAP CART TO RESPONSE ---
@@ -259,6 +260,38 @@ export const removeCartItem = async (
     return {
       success: false,
       message: CART_MESSAGES.CART.REMOVE_FAILED,
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
+export const clearCart = async (userId: number): Promise<ICartServiceResponse> => {
+  try {
+    logger.info(`Service: Clearing cart for user ${userId}`);
+
+    const cart = await cartRepo.findActiveCartByUserId(userId);
+    
+    if (!cart) {
+      return {
+        success: true,
+        message: CART_MESSAGES.CART.CART_EMPTY, // Already empty
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    await cartRepo.clearCartItems(cart.id);
+    
+    logger.info(`Service: Cart ${cart.id} cleared successfully`);
+    return {
+      success: true,
+      message: CART_MESSAGES.CART.CLEAR_SUCCESS,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logError(error as Error, { endpoint: "CartService.clearCart", body: { userId } });
+    return {
+      success: false,
+      message: CART_MESSAGES.CART.CLEAR_FAILED,
       timestamp: new Date().toISOString(),
     };
   }

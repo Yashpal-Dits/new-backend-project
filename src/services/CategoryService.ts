@@ -278,32 +278,3 @@ export const deleteCategory = async (
     };
   }
 };
-
-export const checkCategoryExists = async (
-  id: number
-): Promise<ICategoryServiceResponse<{ id: number; exists: boolean }>> => {
-  try {
-    logger.info(`Checking if category exists with ID: ${id}`);
-
-    const exists = await categoryRepo.categoryExists(id);
-
-    return {
-      success: true,
-      message: exists
-        ? "Category exists"
-        : CATEGORY_MESSAGES.CATEGORY.CATEGORY_NOT_FOUND,
-      data: { id, exists },
-      timestamp: new Date().toISOString(),
-    };
-  } catch (error) {
-    logError(error as Error, {
-      endpoint: "CategoryService.checkCategoryExists",
-      body: { id },
-    });
-    return {
-      success: false,
-      message: CATEGORY_MESSAGES.CATEGORY.FETCH_FAILED,
-      timestamp: new Date().toISOString(),
-    };
-  }
-};

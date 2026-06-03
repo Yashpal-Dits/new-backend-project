@@ -74,9 +74,14 @@ export const deleteCartItem = async (itemId: number): Promise<void> => {
   await cartItemRepository.delete(itemId);
 };
 
-// ─── Product Check ────────────────────────────────────────────
 
 export const findProductById = async (id: number): Promise<Product | null> => {
   const productRepo = AppDataSource.getRepository(Product);
   return productRepo.findOne({ where: { id } });
+};
+
+
+export const clearCartItems = async (cartId: number): Promise<void> => {
+  await cartItemRepository.delete({ cart_id: cartId });
+
 };

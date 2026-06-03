@@ -7,7 +7,7 @@ import {
 } from "../repositories/OTPRepository";
 import { MESSAGES } from "../constants/messages";
 import { OTPPurpose } from "../enums";
-import type { IOTPServiceResponse } from "../interfaces";
+import type { IOTPServiceResponse } from "../interfaces/authInterfaces";
 import logger from "../config/logger";
 import { logError } from "../middlewares/logger";
 

@@ -2,7 +2,7 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { HttpStatusCode } from "../enums";
 import logger from "../config/logger";
-import type { IAuthenticatedRequest } from "../interfaces";
+import type { IAuthenticatedRequest } from "../interfaces/authInterfaces";
 
 export const authenticate = (
   req: IAuthenticatedRequest,

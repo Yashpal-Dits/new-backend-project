@@ -160,38 +160,6 @@ router.get("/:id", categoryController.getCategoryById);
 
 /**
  * @swagger
- * /api/categories/{id}/exists:
- *   get:
- *     summary: Check if category exists
- *     description: Check if a category exists by its ID
- *     tags:
- *       - Categories
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Category ID
- *         example: 1
- *     responses:
- *       200:
- *         description: Category existence check completed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/CategoryExistsResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.get("/:id/exists", categoryController.checkCategoryExists);
-
-/**
- * @swagger
  * /api/categories/{id}:
  *   put:
  *     summary: Update category

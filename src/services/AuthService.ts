@@ -21,7 +21,7 @@ import type {
   IResetPasswordRequest,
   IChangePasswordRequest,
   IForgotPasswordResponse,
-  IPasswordResetResponse,} from "../interfaces/index"
+  IPasswordResetResponse,} from "../interfaces/authInterfaces"
 
 export const register = async (
   data: IRegisterRequest

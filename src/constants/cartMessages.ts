@@ -14,13 +14,7 @@ export const CART_MESSAGES = {
     INSUFFICIENT_STOCK: "Insufficient stock available",
     CART_ITEM_NOT_FOUND: "Cart item not found",
     NOT_YOUR_CART_ITEM: "This cart item does not belong to you",
-  },
-  CHECKOUT: {
-    SUCCESS: "Order placed successfully",
-    FAILED: "Failed to place order",
-    CART_EMPTY: "Cannot checkout with an empty cart",
-    ADDRESS_NOT_FOUND: "Address not found",
-    ADDRESS_NOT_YOURS: "This address does not belong to you",
-    INVALID_PAYMENT_METHOD: "Invalid payment method",
+     CLEAR_SUCCESS: "Cart cleared successfully",
+    CLEAR_FAILED: "Failed to clear cart",
   },
 };

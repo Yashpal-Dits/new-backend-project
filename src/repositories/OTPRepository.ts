@@ -1,7 +1,7 @@
 import { AppDataSource } from "../config/dataSource";
 import { OTP } from "../entities/OTPEntity";
 import { OTPPurpose } from "../enums";
-import type { IOTP } from "../interfaces";
+import type { IOTP } from "../interfaces/authInterfaces";
 
 const otpRepository = AppDataSource.getRepository(OTP);
 

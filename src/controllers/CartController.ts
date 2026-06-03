@@ -4,7 +4,7 @@ import { CART_MESSAGES } from "../constants/cartMessages";
 import { HttpStatusCode } from "../enums";
 import logger from "../config/logger";
 import { logError } from "../middlewares/logger";
-import type { IAuthenticatedRequest } from "../interfaces";
+import type { IAuthenticatedRequest } from "../interfaces/authInterfaces";
 import type {
   IAddToCartRequest,
   IUpdateCartItemRequest,
@@ -154,6 +154,41 @@ export const removeCartItem = async (
     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: CART_MESSAGES.CART.REMOVE_FAILED,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+export const clearCart = async (
+  req: IAuthenticatedRequest, // Changed from Request to IAuthenticatedRequest
+  res: Response
+): Promise<Response> => {
+  try {
+    const userId = req.userId; // Use req.userId to match your other functions
+
+    if (!userId) {
+      return res.status(HttpStatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: "User not authenticated",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    logger.info(`Clearing cart for user ${userId}`);
+
+    const result = await cartService.clearCart(userId);
+
+    return res
+      .status(result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST)
+      .json(result);
+  } catch (error) {
+    logError(error as Error, { 
+      endpoint: "/api/cart/clear", 
+      method: "DELETE" 
+    });
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CART_MESSAGES.CART.CLEAR_FAILED,
       timestamp: new Date().toISOString(),
     });
   }

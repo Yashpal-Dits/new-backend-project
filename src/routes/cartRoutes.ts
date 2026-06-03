@@ -157,6 +157,36 @@ router.put("/items/:itemId", validateRequest(updateCartItemSchema), cartControll
  *         description: Server error
  */
 router.delete("/items/:itemId", cartController.removeCartItem);
+/**
+ * @swagger
+ * /api/cart/clear:
+ *   delete:
+ *     summary: Remove all items from the active cart
+ *     description: Deletes all products currently in the authenticated user's active cart.
+ *     tags: [Cart]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cart cleared successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Unauthorized - Valid JWT token is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.delete("/clear", authenticate, cartController.clearCart);
 
 
 export default router;

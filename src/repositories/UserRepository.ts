@@ -1,7 +1,7 @@
 
 import { AppDataSource } from "../config/dataSource";
 import { User } from "../entities/UserEntity";
-import type { IUserStatus, ICreateUserResponse } from "../interfaces";
+import type { IUserStatus, ICreateUserResponse } from "../interfaces/authInterfaces";
 
 const userRepository = AppDataSource.getRepository(User);
 

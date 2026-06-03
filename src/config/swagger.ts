@@ -464,6 +464,60 @@ const options = {
           },
         },
 
+        // ==================== ADDRESS SCHEMAS ====================
+        Address: {
+          type: "object",
+          properties: {
+            id: { type: "integer", example: 1 },
+            user_id: { type: "integer", example: 1 },
+            address_line: { type: "string", example: "123 Main St, Apartment 4B" },
+            city: { type: "string", example: "New York" },
+            state: { type: "string", example: "NY" },
+            zip_code: { type: "string", example: "10001" },
+            country: { type: "string", example: "USA" },
+            created_at: { type: "string", format: "date-time" },
+            updated_at: { type: "string", format: "date-time" },
+          },
+        },
+        CreateAddressRequest: {
+          type: "object",
+          required: ["address_line", "city", "state", "zip_code", "country"],
+          properties: {
+            address_line: { type: "string", example: "123 Main St, Apartment 4B" },
+            city: { type: "string", example: "New York" },
+            state: { type: "string", example: "NY" },
+            zip_code: { type: "string", example: "10001" },
+            country: { type: "string", example: "USA" },
+          },
+        },
+        UpdateAddressRequest: {
+          type: "object",
+          properties: {
+            address_line: { type: "string", example: "456 Oak Ave" },
+            city: { type: "string", example: "Brooklyn" },
+            state: { type: "string", example: "NY" },
+            zip_code: { type: "string", example: "11201" },
+            country: { type: "string", example: "USA" },
+          },
+        },
+        AddressResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Address created successfully" },
+            data: { $ref: "#/components/schemas/Address" },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        AddressListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Addresses fetched successfully" },
+            data: { type: "array", items: { $ref: "#/components/schemas/Address" } },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
         // ==================== CHECKOUT SCHEMAS ====================
         CheckoutRequest: {
           type: "object",

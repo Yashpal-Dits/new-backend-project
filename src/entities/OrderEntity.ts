@@ -6,6 +6,8 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn
 } from "typeorm";
 import { User } from "./UserEntity";
 import { Address } from "./AddressEntity";
@@ -42,7 +44,12 @@ export class Order {
     default: OrderStatus.PENDING,
   })
   status: OrderStatus;
+  
+  @CreateDateColumn({ type: "timestamp" })
+  created_at: Date;
 
+  @UpdateDateColumn({ type: "timestamp" })
+  updated_at: Date;
 
   @ManyToOne(() => User, (user) => user.orders, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })

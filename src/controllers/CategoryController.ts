@@ -160,28 +160,3 @@ export const deleteCategory = async (
         });
     }
 };
-
-export const checkCategoryExists = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  try {
-    const { id } = req.params;
-
-    logger.info(`Checking if category exists with ID: ${id}`);
-
-    const result = await CategoryService.checkCategoryExists(Number(id));
-
-    return res.status(HttpStatusCode.OK).json(result);
-  } catch (error) {
-    logError(error as Error, {
-      endpoint: `/api/categories/${req.params.id}/exists`,
-      method: "GET",
-    });
-    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      message: CATEGORY_MESSAGES.CATEGORY.FETCH_FAILED,
-      timestamp: new Date().toISOString(),
-    });
-  }
-};

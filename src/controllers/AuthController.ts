@@ -20,7 +20,7 @@ import type {
   IResetPasswordResponse,
   IAuthenticatedRequest,
 
-} from "../interfaces";
+} from "../interfaces/authInterfaces";
 
 
 
