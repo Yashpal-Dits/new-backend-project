@@ -2,7 +2,7 @@ import { AppDataSource } from "../config/dataSource";
 import { Product } from "../entities/ProductEntity";
 import { Store } from "../entities/StoreEntity";
 import { Category } from "../entities/CategoryEntity";
-
+import { EntityManager } from "typeorm";
 
 const productRepository = AppDataSource.getRepository(Product);
 
@@ -12,16 +12,10 @@ export const createProduct = async (productData: Partial<Product>): Promise<Prod
 };
 
 export const findProductById = async (id: number): Promise<Product | null> => {
-  return productRepository.findOne({
-    where: { id },
-    relations: ["store", "category"],
-  });
+  return productRepository.findOne({ where: { id } });
 };
 
-export const findAllProductsWithPagination = async (
-  skip: number,
-  limit: number
-): Promise<[Product[], number]> => {
+export const findAllProductsWithPagination = async (skip: number, limit: number): Promise<[Product[], number]> => {
   return productRepository.findAndCount({
     skip,
     take: limit,
@@ -30,8 +24,9 @@ export const findAllProductsWithPagination = async (
   });
 };
 
-export const updateProduct = async (id: number, updateData: Partial<Product>): Promise<void> => {
-  await productRepository.update(id, updateData);
+export const updateProduct = async (id: number, updateData: Partial<Product>, manager?: EntityManager): Promise<void> => {
+  const repo = manager ? manager.getRepository(Product) : productRepository;
+  await repo.update(id, updateData);
 };
 
 export const deleteProduct = async (id: number): Promise<void> => {
@@ -44,7 +39,6 @@ export const skuExists = async (sku: string, excludeId?: number): Promise<boolea
   if (excludeId && product.id === excludeId) return false;
   return true;
 };
-
 
 export const storeExists = async (storeId: number): Promise<boolean> => {
   const storeRepo = AppDataSource.getRepository(Store);

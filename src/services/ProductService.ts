@@ -2,13 +2,32 @@ import * as ProductRepository from "../repositories/ProductRepository";
 import { PRODUCT_MESSAGES } from "../constants/productMessages";
 import logger from "../config/logger";
 import { logError } from "../middlewares/logger";
+import { Product } from "../entities/ProductEntity";
+import { getCache,setCache, delCache, delPattern } from "../config/redis";
 import type {
   ICreateProductRequest,
   IUpdateProductRequest,
   IProductServiceResponse,
   IProductResponse,
 } from "../interfaces/productInterfaces";
-import { Product } from "../entities/ProductEntity";
+
+//  PRODUCT RESPONSE HELPER 
+function mapToResponse(product: Product): IProductResponse {
+  return {
+    id: product.id,
+    store_id: product.store_id,
+    name: product.name,
+    price: product.price,
+    categories_id: product.categories_id,
+    stock: product.stock,
+    description: product.description || null,
+    image: product.image || null,
+    sku: product.sku,
+    is_active: product.is_active,
+    created_at: product.created_at,
+    updated_at: product.updated_at,
+  };
+}
 
 //  CREATE PRODUCT 
 export const createProduct = async (
@@ -120,9 +139,16 @@ export const updateProduct = async (
       }
     }
 
+    //  Update the database
     await ProductRepository.updateProduct(id, updateData);
-    const updated = await ProductRepository.findProductById(id);
+    await delCache(`products:page1:limit10`);
+    logger.info(`Cache invalidated for product ${id}`);
 
+    await delPattern("products:*");
+    logger.info(`All product caches invalidated due to update of products ${id}`);
+
+
+    const updated = await ProductRepository.findProductById(id);
     logger.info(`Updated product ${id} successfully`);
     return {
       success: true,
@@ -182,24 +208,38 @@ export const getAllProducts = async (
   limit: number = 10
 ): Promise<IProductServiceResponse<any>> => {
   try {
-    const skip = (page - 1) * limit;
 
+    const cacheKey = `products:page${page}: limit${limit}`;
+
+    const cachedData = await getCache(cacheKey);
+    if(cachedData) {
+      logger.info(`Cached HIT: Returning from Redis for ${cacheKey}`);
+
+      return JSON.parse(cachedData); // Convert string back to object
+    }
+    // If Cache failed : Fetch data from Database
+    logger.info(`Cache Failed: Fetching products from DB for ${cacheKey}`);
+    const skip = (page -1) * limit;
     const [products, total] = await ProductRepository.findAllProductsWithPagination(skip, limit);
 
-    return {
+    const response = {
       success: true,
       message: PRODUCT_MESSAGES.PRODUCT.FETCH_SUCCESS,
       data: {
-        products: products.map(mapToResponse),
+        products : products.map(mapToResponse),
         pagination: {
           total,
           page,
           limit,
-          totalPages: Math.ceil(total / limit),
+          totalPage: Math.ceil(total/limit),
         },
       },
-      timestamp: new Date().toISOString(),
+      timestamp : new Date().toISOString(),
     };
+
+    await setCache(cacheKey, response, 3600);
+    return response;
+
   } catch (error) {
     logError(error as Error, {
       endpoint: "ProductService.getAllProducts",
@@ -246,20 +286,3 @@ export const deleteProduct = async (id: number): Promise<IProductServiceResponse
   }
 };
 
-//  PRODUCT RESPONSE HELPER 
-function mapToResponse(product: Product): IProductResponse {
-  return {
-    id: product.id,
-    store_id: product.store_id,
-    name: product.name,
-    price: product.price,
-    categories_id: product.categories_id,
-    stock: product.stock,
-    description: product.description || null,
-    image: product.image || null,
-    sku: product.sku,
-    is_active: product.is_active,
-    created_at: product.created_at,
-    updated_at: product.updated_at,
-  };
-}
