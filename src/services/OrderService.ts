@@ -44,21 +44,21 @@ export const checkout = async (userId: number, data: ICheckoutRequest): Promise<
   try {
     logger.info(`Starting checkout transaction for user ${userId}`);
 
-    // 2. Validate Address 
+    //  Validate Address 
     const address = await AddressRepository.findAddressById(data.address_id);
     if (!address || address.user_id !== userId) {
       await queryRunner.rollbackTransaction();
       return { success: false, message: ORDER_MESSAGES.ORDER.ADDRESS_NOT_FOUND, timestamp: new Date().toISOString() };
     }
 
-    // 3. Find active cart 
+    //  Find active cart 
     const cart = await CartRepository.findActiveCartByUserId(userId);
     if (!cart || !cart.items || cart.items.length === 0) {
       await queryRunner.rollbackTransaction();
       return { success: false, message: ORDER_MESSAGES.ORDER.CART_EMPTY, timestamp: new Date().toISOString() };
     }
 
-    // 4. Stock check and total calculation 
+    //  Stock check and total calculation 
     let totalPrice = 0;
     for (const item of cart.items) {
       const product = await ProductRepository.findProductById(item.product_id);
@@ -69,7 +69,7 @@ export const checkout = async (userId: number, data: ICheckoutRequest): Promise<
       totalPrice += Number(item.price) * item.quantity;
     }
 
-    // 5. Create Order 
+    // Create Order 
     const order = await OrderRepository.createOrder({
       user_id: userId,
       address_id: data.address_id,
@@ -77,7 +77,7 @@ export const checkout = async (userId: number, data: ICheckoutRequest): Promise<
       status: OrderStatus.PENDING,
     }, queryRunner.manager);
 
-    // 6. Create Order Items and Update Product Stock
+    //  Create Order Items and Update Product Stock
     for (const item of cart.items) {
       await OrderRepository.createOrderItem({
         order_id: order.id,
@@ -94,8 +94,8 @@ export const checkout = async (userId: number, data: ICheckoutRequest): Promise<
       }
     }
 
-    // 7. Mark Cart as Converted
-    await CartRepository.markCartAsConverted(cart.id, queryRunner.manager);
+    
+    await CartRepository.clearCartItems(cart.id, queryRunner.manager);
 
     await queryRunner.commitTransaction();
     logger.info(`Order ${order.id} committed successfully`);
@@ -210,10 +210,10 @@ export const cancelOrder = async (userId: number, orderId: number): Promise<IOrd
       };
     }
 
-    // 1. Update Order Status 
+    //  Update Order Status 
     await OrderRepository.updateOrderStatus(orderId, OrderStatus.CANCELLED, queryRunner.manager);
 
-    // 2. Restore Stock
+    //  Restore Stock
     if (order.items && order.items.length > 0) {
       for (const item of order.items) {
         const product = await ProductRepository.findProductById(item.product_id);

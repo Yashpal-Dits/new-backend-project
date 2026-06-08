@@ -16,7 +16,7 @@ redisClient.on('connect', () => {
 export const connectRedis = async (): Promise<void> => {
     if(!redisClient.isOpen) {
       await redisClient.connect();
-      logger.info('Redis connection established');
+      logger.info('Redis connection established'); 
     }
 }
 
@@ -25,8 +25,7 @@ export const getCache = async (key: string): Promise<string | null> => {
 };
 
 export const setCache = async (key: string, value: any, ttl: number = 3600): Promise<void> => {
-    //  Automatically stringfy the value here so the server doesn't have  to
-
+   
     await redisClient.set(key, JSON.stringify(value), { EX: ttl });
 };
 

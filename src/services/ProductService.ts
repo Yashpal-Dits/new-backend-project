@@ -212,6 +212,7 @@ export const getAllProducts = async (
     const cacheKey = `products:page${page}: limit${limit}`;
 
     const cachedData = await getCache(cacheKey);
+
     if(cachedData) {
       logger.info(`Cached HIT: Returning from Redis for ${cacheKey}`);
 
@@ -220,6 +221,7 @@ export const getAllProducts = async (
     // If Cache failed : Fetch data from Database
     logger.info(`Cache Failed: Fetching products from DB for ${cacheKey}`);
     const skip = (page -1) * limit;
+    
     const [products, total] = await ProductRepository.findAllProductsWithPagination(skip, limit);
 
     const response = {

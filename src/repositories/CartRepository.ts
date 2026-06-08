@@ -4,11 +4,15 @@ import { CartItem } from "../entities/CartItemEntity";
 import { Product } from "../entities/ProductEntity";
 import { EntityManager } from "typeorm";
 
-
-
 const cartRepository = AppDataSource.getRepository(Cart);
 const cartItemRepository = AppDataSource.getRepository(CartItem);
 
+export const findCartByUserId = async (userId: number): Promise<Cart | null> => {
+  return cartRepository.findOne({
+    where: { user_id: userId },
+    relations: ["items", "items.product"],
+  });
+};
 
 export const findActiveCartByUserId = async (userId: number): Promise<Cart | null> => {
   return cartRepository.findOne({
@@ -46,15 +50,27 @@ export const findProductById = async (id: number): Promise<Product | null> => {
   return productRepo.findOne({ where: { id } });
 };
 
-// ─── WRITE OPERATIONS ─────
-
-export const createCart = async (userId: number, manager?: EntityManager): Promise<Cart> => {
+export const createCart = async (
+  userId: number,
+  manager?: EntityManager
+): Promise<Cart> => {
   const repo = manager ? manager.getRepository(Cart) : cartRepository;
   const cart = repo.create({ user_id: userId, status: "active" as any });
   return repo.save(cart);
 };
 
-export const markCartAsConverted = async (cartId: number, manager?: EntityManager): Promise<void> => {
+export const activateCart = async (
+  cartId: number,
+  manager?: EntityManager
+): Promise<void> => {
+  const repo = manager ? manager.getRepository(Cart) : cartRepository;
+  await repo.update(cartId, { status: "active" as any });
+};
+
+export const markCartAsConverted = async (
+  cartId: number,
+  manager?: EntityManager
+): Promise<void> => {
   const repo = manager ? manager.getRepository(Cart) : cartRepository;
   await repo.update(cartId, { status: "converted" as any });
 };
@@ -85,12 +101,18 @@ export const updateCartItemQuantity = async (
   await repo.update(itemId, { quantity });
 };
 
-export const deleteCartItem = async (itemId: number, manager?: EntityManager): Promise<void> => {
+export const deleteCartItem = async (
+  itemId: number,
+  manager?: EntityManager
+): Promise<void> => {
   const repo = manager ? manager.getRepository(CartItem) : cartItemRepository;
   await repo.delete(itemId);
 };
 
-export const clearCartItems = async (cartId: number, manager?: EntityManager): Promise<void> => {
+export const clearCartItems = async (
+  cartId: number,
+  manager?: EntityManager
+): Promise<void> => {
   const repo = manager ? manager.getRepository(CartItem) : cartItemRepository;
   await repo.delete({ cart_id: cartId });
 };
